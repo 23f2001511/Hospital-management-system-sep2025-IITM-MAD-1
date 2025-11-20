@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Report | HMS Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .wrapper { display: flex; width: 100%; min-height: 100vh; }
+        #sidebar { width: 250px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 999; background: #ffffff; transition: all 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        #sidebar .sidebar-header { padding: 20px; border-bottom: 1px solid #e9ecef; }
+        #sidebar .sidebar-header a { font-weight: 700; color: #007bff !important; text-decoration: none; }
+        #sidebar ul.components { padding: 20px 0; }
+        #sidebar ul li a { padding: 15px 20px; font-size: 1.1em; display: block; color: #495057; text-decoration: none; transition: all 0.3s; }
+        #sidebar ul li a:hover { color: #007bff; background: #f8f9fa; }
+        #sidebar ul li.active>a { color: #007bff; background: #eef5ff; font-weight: 600; }
+        #content { width: calc(100% - 250px); padding: 20px; min-height: 100vh; transition: all 0.3s; position: absolute; top: 0; right: 0; }
+        .top-navbar { background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 10px 20px; margin-bottom: 20px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+        /* Print Specific Styles */
+        @media print {
+            body { background-color: white; font-size: 10pt; }
+            #sidebar, .top-navbar, .footer, .card-header a, .card-header button { display: none !important; }
+            #content { width: 100% !important; position: static !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
+            .card { box-shadow: none !important; border: 1px solid #ccc; margin-bottom: 15px; page-break-inside: avoid; }
+            .card-header { background-color: #eee !important; border-bottom: 1px solid #ccc; }
+            h1, h5, h6 { margin-top: 15px; margin-bottom: 5px; }
+            p { margin-bottom: 5px; }
+            ul { padding-left: 20px; margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header d-flex align-items-center">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                    <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+                </a>
+            </div>
+            <ul class="list-unstyled components">
+                <li><a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li><a href="{{ url_for('doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
+                <li><a href="{{url_for('booked_appointment_list')}}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
+                <li class="active"><a href="{{ url_for('medical_record') }}"><i class="bi bi-file-medical-fill me-2"></i>Medical Records</a></li>
+                <li><a href="{{ url_for('update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
+                <div class="container-fluid">
+                    <h4 class="mb-0">Welcome, {{ current_user.full_name }}</h4>
+                    <div class="d-flex align-items-center ms-auto">
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-1 fs-4"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" href="#">view Profile</a></li>
+                                   
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content: Patient History Report -->
+            <div class="main-content">
+                 <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Your Medical Report</h5>
+                        <div>
+                            <!-- Print Button -->
+                            <button onclick="window.print()" class="btn btn-secondary me-2">
+                                <i class="bi bi-printer me-1"></i> Print Report
+                            </button>
+                            <!-- Back Button -->
+                            <a href="{{ url_for('patient_dashboard') }}" class="btn btn-primary">
+                                <i class="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body" id="report-content">
+                        <!-- Patient Details (Replace with dynamic data) -->
+                        <div class="patient-info mb-4 p-3 bg-light rounded border">
+                            <h6 class="mb-1"><strong>Patient Name:</strong> {{ patient.user.first_name }} {{ patient.user.last_name }}</h6>
+                            <p class="mb-1"><strong>Date of Birth:</strong> {{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else 'N/A' }}</p>
+                            <p class="text-muted mb-0"><strong>Gender:</strong> {{ patient.gender or 'N/A' }}</p>
+                        </div>
+
+                        <h5 class="mb-3">Visit History</h5>
+
+                        <!-- Loop through completed appointments -->
+                        {% for appointment in appointments %}
+                            <div class="card mb-3 shadow-sm">
+                                <div class="card-header bg-light">
+                                    Visit on: <strong>{{ appointment.appointment_datetime.strftime('%Y-%m-%d %I:%M %p') }}</strong> 
+                                    with Dr. {{ appointment.doctor.user.last_name if appointment.doctor and appointment.doctor.user else 'N/A' }}
+                                    ({{ appointment.doctor.department.name if appointment.doctor and appointment.doctor.department else 'N/A' }})
+                                </div>
+                                <div class="card-body">
+                                    {% if appointment.history %}
+                                        <p><strong>Visit Type:</strong> {{ appointment.history.visit_type or 'N/A' }}</p>
+                                        <p><strong>Tests Done:</strong> {{ appointment.history.tests_done or 'N/A' }}</p>
+                                        <p><strong>Diagnosis:</strong> {{ appointment.history.diagnosis or 'N/A' }}</p>
+                                        <p><strong>Prescription Notes:</strong> {{ appointment.history.prescription_notes or 'N/A' }}</p>
+                                        
+                                        <h6>Medicines Prescribed:</h6>
+                                        {% if appointment.history.medicines %}
+                                            <ul class="list-unstyled">
+                                            {% for med in appointment.history.medicines %}
+                                                <li><i class="bi bi-capsule me-2"></i>{{ med.medicine_name }} - {{ med.dosage }}</li>
+                                            {% endfor %}
+                                            </ul>
+                                        {% else %}
+                                            <p class="text-muted">No medicines prescribed for this visit.</p>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted">No detailed history recorded for this completed visit.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info" role="alert">
+                                No completed appointment history found.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer mt-4 text-center text-muted">
+                © 2025 Hospital Management System | HMS Portal
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

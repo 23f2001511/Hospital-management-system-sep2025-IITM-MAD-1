@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Appointments | HMS Portal</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../../static/css/admin/all_appointments.css" />
+</head>
+
+<body>
+  <div class="wrapper">
+    <!-- ======= SIDEBAR ======= -->
+    <nav id="sidebar">
+      <div class="sidebar-header d-flex align-items-center">
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+          <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+          <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+        </a>
+      </div>
+      <ul class="list-unstyled components">
+        <li><a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+        <li><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
+        <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
+        <li class="active"><a href="{{ url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+        <li><a href="update_profile"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
+      </ul>
+    </nav>
+
+    <!-- ======= CONTENT ======= -->
+    <div id="content">
+      <!-- ======= TOP NAVBAR ======= -->
+      <nav class="navbar navbar-expand-lg navbar-light top-navbar">
+        <div class="container-fluid">
+          <h5 class="navbar-title mb-0">Appointments</h5>
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle fs-4"></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                
+                <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- ======= MAIN CONTENT ======= -->
+      <div class="main-content">
+        <div class="container-fluid p-0">
+          <div class="card content-panel">
+            <div class="card-header panel-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">All Appointments</h5>
+              <div class="header-search">
+                <i class="bi bi-search"></i>
+                <input type="text" class="form-control" id="appointmentSearchInput" placeholder="Search appointments..." />
+              </div>
+            </div>
+
+            <div class="card-body table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Sr.No.</th>
+                    <th>Patient Name</th>
+                    <th>Doctor Name </th>
+                    <th>Department</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="appointmentsTable">
+                {% for appointment in appointments %}
+                  <tr>
+                    <td>{{loop.index}}</td>
+                    <td>{{appointment.patient.full_name}}</td>
+                    <td>{{appointment.doctor.full_name}}</td>
+                    <td>{{appointment.department.name}} </td>
+                    <td>{{appointment.appointment_datetime}} </td>
+                    <td><span class="badge bg-success">{{appointment.status}} </span></td>
+                    <td><a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> View</a></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="footer mt-4 text-center text-muted">
+            © 2025 Hospital Management System | All Appointments
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Table Search Filter -->
+  <script>
+    document.getElementById("appointmentSearchInput").addEventListener("keyup", function () {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#appointmentsTable tr");
+      rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
+      });
+    });
+  </script>
+</body>
+</html>

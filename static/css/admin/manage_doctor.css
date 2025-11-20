@@ -1,0 +1,131 @@
+/* ===== Navbar Styling ===== */
+.navbar {
+background-color: #f5f0f0ec !important; /* clean white background */
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-brand {
+font-weight: 700;
+color: #007bff !important; /* hospital blue */
+font-size: 1.3rem;
+}
+
+
+
+/* ===== Doctor Card ===== */
+.doctor-card {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 850px;
+    margin: 40px auto;
+    
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.doctor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.doctor-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.doctor-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #007bff;
+}
+
+.doctor-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.badge-dept {
+    background-color: #e9f3ff;
+    color: #0056b3;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+.btn-edit:hover {
+    background-color: #e0a800;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+.btn-blacklist {
+    background-color: #6c757d;
+    color: white;
+    border-radius: 6px;
+    padding: 6px 14px;
+    border: none;
+}
+.btn-blacklist:hover {
+    background-color: #5a6268;
+}
+
+/* ===== Stats Section ===== */
+.stats-box {
+    display: flex;
+    justify-content: space-around;
+    background-color: #f9fafb;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 25px 0;
+}
+.stats-item {
+    text-align: center;
+}
+.stats-item h4 {
+    color: #007bff;
+    font-weight: 600;
+}
+.stats-item p {
+    color: #555;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* ===== Appointment Table ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+}
+th {
+    background-color: #f9fafb;
+    color: #333;
+}

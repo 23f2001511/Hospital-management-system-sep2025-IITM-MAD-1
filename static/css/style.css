@@ -1,0 +1,28 @@
+/* Basic Reset and Font styles */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color:rgb(254, 254, 254);
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+  .Mid{
+    text-align: center;
+  }
+
+  .no-underline{
+    text-decoration: none;
+  }
+
+  /* ====== Footer ====== */
+ .footer {
+    text-align: center;
+    padding: 1.5rem 0;
+    background-color: #343a40; /* Dark background */
+    color: #adb5bd; /* Light grey text */
+    font-size: 0.9rem;
+    margin-top: 3rem;
+    width: 100%;
+}
+
+

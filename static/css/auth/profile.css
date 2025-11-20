@@ -1,0 +1,106 @@
+/* Styles specific to this page layout (Sidebar + Content) */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
+    overflow-x: hidden; 
+}
+.wrapper { 
+    display: flex; 
+    width: 100%; 
+    min-height: 100vh; 
+}
+#sidebar { 
+    width: 250px; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    height: 100vh; 
+    z-index: 999; 
+    background: #ffffff; 
+    transition: all 0.3s; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    overflow-y: auto; 
+}
+#sidebar .sidebar-header { 
+    padding: 20px; 
+    border-bottom: 1px solid #e9ecef; 
+}
+#sidebar .sidebar-header a { 
+    font-weight: 700; 
+    color: #007bff !important; 
+    text-decoration: none; 
+}
+#sidebar ul.components { 
+    padding: 20px 0; 
+}
+#sidebar ul li a { 
+    padding: 15px 20px; 
+    font-size: 1.1em; 
+    display: block; 
+    color: #495057; 
+    text-decoration: none; 
+    transition: all 0.3s; 
+}
+#sidebar ul li a:hover { 
+    color: #007bff; 
+    background: #f8f9fa; 
+}
+#sidebar ul li.active>a { 
+    color: #007bff; 
+    background: #eef5ff; 
+    font-weight: 600; 
+}
+#content { 
+    width: calc(100% - 250px); 
+    padding: 20px; 
+    min-height: 100vh; 
+    transition: all 0.3s; 
+    position: relative; 
+    margin-left: 250px; 
+    top: 0; 
+    right: 0; 
+}
+.top-navbar { 
+    background: #fff; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+    padding: 10px 20px; 
+    margin-bottom: 20px; 
+}
+.card { 
+    border: none; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+}
+/* Profile Picture specific style */
+.profile-picture-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px auto; /* Center the image */
+}
+.profile-picture {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #eee;
+}
+.change-picture-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: rgba(0, 123, 255, 0.8);
+    color: white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid white;
+}
+.change-picture-btn input[type="file"] {
+    display: none; /* Hide the default file input */
+}
