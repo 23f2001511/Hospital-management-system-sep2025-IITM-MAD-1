@@ -119,7 +119,7 @@
             <ul class="list-unstyled components">
                 <li class="active"><a href="{{ url_for('doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
                 <li><a href="{{url_for('manage_appointment')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-                <li><a href="#"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
+                <li><a href="{{ url_for('assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
                 
                 <li><a href="{{url_for('update_profile')}}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
             </ul>

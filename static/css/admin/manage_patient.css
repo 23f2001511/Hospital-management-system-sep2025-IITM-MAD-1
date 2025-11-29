@@ -1,112 +1,144 @@
-/* ===== Navbar Styling ===== */
-.navbar {
-    background-color: #f5f0f0ec !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+/* === Global Styles === */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5 !important;
+    color: #333;
 }
 
-.navbar-brand {
+a { text-decoration: none; }
+
+/* === Layout Structure === */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#content {
+    width: calc(100% - 260px);
+    padding: 1.5rem;
+    min-height: 100vh;
+    margin-left: 260px;
+    transition: all 0.3s;
+}
+
+/* === SIDEBAR === */
+#sidebar {
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 999;
+    background: #ffffff;
+    color: #fff;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+}
+
+#sidebar .sidebar-header a {
     font-weight: 700;
     color: #007bff !important;
-    font-size: 1.3rem;
+    text-decoration: none;
 }
 
-/* ===== Patient Card ===== */
-.patient-card {
-    background: white;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 850px;
-    margin: 40px auto;
-    padding: 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+#sidebar ul.components {
+    padding: 20px 0;
 }
 
-.patient-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    display: block;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.3s;
 }
 
-.patient-info {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.patient-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #007bff;
-}
-
-.patient-name {
-    font-size: 1.5rem;
-    font-weight: 600;
+#sidebar ul li a:hover {
     color: #007bff;
+    background: #f8f9fa;
 }
 
-.badge-status {
-    background-color: #e9f3ff;
-    color: #0056b3;
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 0.9rem;
+#sidebar ul li.active>a,
+a[aria-expanded="true"] {
+    color: #007bff;
+    background: #eef5ff;
+    font-weight: 600;
 }
 
-.btn-edit {
-    background-color: #ffc107;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 14px;
-}
-.btn-edit:hover { background-color: #e0a800; }
-
-.btn-delete {
-    background-color: #dc3545;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 14px;
-}
-.btn-delete:hover { background-color: #c82333; }
-
-.btn-blacklist {
-    background-color: #6c757d;
-    color: white;
-    border-radius: 6px;
-    padding: 6px 14px;
-    border: none;
-}
-.btn-blacklist:hover {
-    background-color: #5a6268;
+/* === Top Navbar === */
+.top-navbar {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 30px 0 rgba(82, 63, 105, 0.05);
 }
 
-/* ===== Stats Section ===== */
-.stats-box {
-    display: flex;
-    justify-content: space-around;
-    background-color: #f9fafb;
+.top-navbar .navbar-title {
+    font-weight: 600;
+    color: #343a40;
+    font-size: 1.25rem;
+}
+
+/* === Profile Card Styles === */
+.card.content-panel {
     border-radius: 10px;
-    padding: 15px;
-    margin: 25px 0;
+    border: none;
+    box-shadow: 0 0 30px 0 rgba(82, 63, 105, 0.05);
+    background-color: #ffffff;
+    margin-bottom: 1.5rem;
 }
-.stats-item { text-align: center; }
-.stats-item h4 { color: #007bff; font-weight: 600; }
-.stats-item p { color: #555; font-size: 0.9rem; margin: 0; }
 
-/* ===== Appointment Table ===== */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+.patient-profile-img {
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #f8f9fa;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
-th, td {
-    border: 1px solid #dee2e6;
-    padding: 10px;
-    text-align: center;
+
+/* Label and Value Styling */
+.label-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #8898aa; /* Softer gray for labels */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
 }
-th { background-color: #f9fafb; color: #333; }
+
+.value-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #32325d;
+    line-height: 1.5;
+}
+
+/* === Action Buttons === */
+.btn-action-group .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    transition: transform 0.2s;
+}
+
+.btn-action-group .btn:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    #sidebar { margin-left: -260px; }
+    #content { width: 100%; margin-left: 0; }
+}

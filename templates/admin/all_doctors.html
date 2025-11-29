@@ -32,7 +32,7 @@
                 <li class="active"><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
                 <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
                 <li><a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-                <li><a href="{{url_for('update_profile')}}"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
+               
             </ul>
         </nav>
 
@@ -45,8 +45,12 @@
                     <h5 class="navbar-title mb-0">Doctors</h5>
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle fs-4"></i>
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="text-end me-2 d-none d-md-block">
+                                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">Admin User</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Administrator</div>
+                                </div>
+                                <i class="bi bi-person-circle fs-3 text-primary"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                
@@ -75,7 +79,7 @@
                                     </div>
 
                                     <!-- Add Doctor Button -->
-                                    <a href="#" class="btn btn-primary btn-sm add-btn">
+                                    <a href="{{ url_for('add_doctor') }}" class="btn btn-primary btn-sm add-btn">
                                         <i class="bi bi-plus-circle me-1"></i>Add New Doctor
                                     </a>
                                 </div>
@@ -98,14 +102,14 @@
                                     </thead>
                                     <tbody id="doctorsTableBody">
                                     {% for doctor in doctors %}    
-                                        <tr>
+                                        <tr class="{% if loop.index > 8 %}table-row-hidden{% endif %}"> 
                                             <td>{{loop.index}} </td>
                                             <td>{{doctor.user.full_name}} </td>
                                             <td>{{doctor.department.name}} </td>
                                             <td>{{doctor.user.email}} </td>
                                             <td>{{doctor.user.phone_number}}</td>
                                             <td class="actions-cell text-center">
-                                                <a href="#" class="btn btn-sm btn-outline-primary">
+                                                <a href="{{ url_for('view_doctor', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye-fill"></i> View Profile
                                                 </a>
                                             </td>
@@ -115,7 +119,11 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <div class="card-footer text-center">
+                            <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="doctorsTableBody">See All</a>
                         </div>
+                        </div>
+                        
                     </div>
                 </div>
 
@@ -129,6 +137,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="../../static/js/dyanamic.js"></script>
 
     <!-- JavaScript for Search -->
     <script>

@@ -119,7 +119,7 @@
                     <a href="{{ url_for('manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
                 </li>
                 <li>
-                    <a href="#"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a>
+                    <a href="{{ url_for('assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a>
                 </li>
                  <li>
                     <a href="{{ url_for('update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a>
@@ -137,20 +137,16 @@
             <nav class="navbar navbar-expand-lg navbar-light top-navbar">
                 <div class="container-fluid">
                     <!-- Title badal diya hai -->
-                    <h4 class="mb-0">Doctor's Dashboard</h4>
+                    <h4 class="mb-0">Welcome, Dr. {{current_user.full_name}}</h4>
                     <div class="d-flex align-items-center ms-auto">
-                        <!-- Welcome message badal diya hai -->
-                        <span class="navbar-text me-3">
-                            Welcome, Dr. Neha Chauhan
-                        </span>
-                        <ul class="navbar-nav">
+                        
+                        <ul class="navbar-nav ms-3">
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-person-circle me-1 fs-4"></i>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="#">Edit Profile</a></li>
-                                    <li><a class="dropdown-item" href="#">View Report</a></li>
+                                    <li><a class="dropdown-item" href="{{url_for('update_profile')}}">Profile</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
                                 </ul>
@@ -166,6 +162,17 @@
             *************************************
             -->
             <div class="main-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
 
                 <!-- Stats Cards HATA DIYE HAIN -->
                 <!-- Department List HATA DI GAYI HAI -->
@@ -179,30 +186,44 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
+                            
                             <table class="table table-hover align-middle">
                                 <thead>
                                     <tr>
                                         <th>Sr No.</th>
                                         <th>Patient Name</th>
-                                        <th>Patient Type</th>
-                                        <th>Patient History</th>
+                                        <th>Age</th>
+                                        <th>Date & Time</th>
+                                        <th>Gender</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <!-- Yahan aap apne loop variable (`appointments`) daal sakte hain -->
                                 {% if appointments %}
-                                {% for appointment in appointments %}
-                                    <tr>
-                                        <td>1</td>
+                                {% for appointment in appointments if appointment.status == 'booked'%}
+                                    <tr class="{% if loop.index > 5 %}table-row-hidden{% endif %}">
+                                        <td>{{ loop.index }}</td>
                                         <td>Mr. {{appointment.patient.user.full_name}}</td>
-                                        <td>New Patient</td>
-                                        <td><a href="#" class="btn btn-sm btn-outline-primary">Update</a></td>
+                                        <td>{{ appointment.patient.user.age }}</td>
+                                        <td>{{ appointment.appointment_datetime }}</td>
+                                        <td>{{ appointment.patient.gender }}</td>
                                         <td class="action-buttons">
-                                            <button class="btn btn-sm btn-outline-success">Mark as Complete</button>
-                                            <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                                            <!-- Mark Complete -->
+                                            <a href="{{ url_for('update_appointment_status', appointment_id=appointment.id, new_status='Completed') }}"
+                                            class="btn btn-sm btn-success">
+                                            <i class="bi bi-check2-circle"></i> Complete
+                                            </a>
+
+                                            <!-- Cancel -->
+                                            <a href="{{ url_for('update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}"
+                                            class="btn btn-sm btn-danger">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                            </a>
+
                                         </td>
                                     </tr>
+                               
                                 {% endfor %}
                                {% endif %}
                                 </tbody>
@@ -220,57 +241,48 @@
                 <div class="card mb-4" id="past-appointments-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Past Appointments</h5>
-                        <span class="badge bg-secondary rounded-pill">{{done_count}} Total</span>
+                        <span class="badge bg-secondary rounded-pill">{{done_count}} Checked</span>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
+                            <input type="text" id="search-assigned" class="form-control mb-2" placeholder="Search patient or date...">
                             <table class="table table-hover align-middle">
                                 <thead>
                                     <tr>
                                         <th>Sr No.</th>
                                         <th>Patient Name</th>
-                                        <th>Date</th>
+                                        <th>Date & Time</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                {% for appointment in appointments  if appointment.status != 'booked' %}
                                     <!-- Yahan aap apne 'past_appointments' ka loop daal sakte hain -->
-                                    <tr>
-                                        <td>1</td>
-                                        <td>Mr. Alok Jain</td>
-                                        <td>14-11-2025</td>
-                                        <td><span class="badge bg-success">Completed</span></td>
-                                        <td><button class="btn btn-sm btn-outline-secondary">View Report</button></td>
+                                    <tr class="{% if loop.index > 10 %}table-row-hidden{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ appointment.patient.user.full_name }}</td>
+                                        <td> {{appointment.appointment_datetime}}</td>
+                                        {% if appointment.status.lower() == 'completed' %}
+                                            <td><span class="badge bg-success">Completed</span></td> 
+                                        {% elif appointment.status.lower() == 'cancelled' %}
+                                            <td><span class="badge bg-danger">Cancelled</span></td>
+                                        {% endif %}
+
+                                        {% if appointment.status.lower() == 'completed' %}
+                                            <td>
+                                                <a href="{{ url_for('view_patient_report', appointment_id=appointment.id) }}"
+                                                class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-eye"></i> View Report
+                                                </a>
+                                            </td>
+                                        {% elif appointment.status.lower() == 'cancelled' %}
+                                            <td><span class="badge bg-danger">No Report</span></td>
+                                        {% endif %}
+                                        
                                     </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td>Mrs. Priya Mehta</td>
-                                        <td>12-11-2025</td>
-                                        <td><span class="badge bg-success">Completed</span></td>
-                                        <td><button class="btn btn-sm btn-outline-secondary">View Report</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>3</td>
-                                        <td>Mr. Sameer Ali</td>
-                                        <td>10-11-2025</td>
-                                        <td><span class="badge bg-danger">Cancelled</span></td>
-                                        <td><button class="btn btn-sm btn-outline-secondary" disabled>No Report</button></td>
-                                    </tr>
-                                    <tr class="table-row-hidden">
-                                        <td>4</td>
-                                        <td>Master. Rohit</td>
-                                        <td>09-11-2025</td>
-                                        <td><span class="badge bg-success">Completed</span></td>
-                                        <td><button class="btn btn-sm btn-outline-secondary">View Report</button></td>
-                                    </tr>
-                                    <tr class="table-row-hidden">
-                                        <td>5</td>
-                                        <td>Ms. Saniya Iyer</td>
-                                        <td>05-11-2025</td>
-                                        <td><span class="badge bg-success">Completed</span></td>
-                                        <td><button class="btn btn-sm btn-outline-secondary">View Report</button></td>
-                                    </tr>
+                               
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -287,49 +299,19 @@
             </div>
         </div>
     </div>
-
-    <!-- 
-    *************************************
-    JAVASCRIPT - BINA KISI BADLAV KE
-    *************************************
-    -->
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        
-        // Yeh script ab 'see-more-btn' class waale sabhi buttons par kaam karega
-        // Isliye yeh 'Upcoming' aur 'Past' dono tables par chalega
-        const seeMoreButtons = document.querySelectorAll('.see-more-btn');
-
-        seeMoreButtons.forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.preventDefault();
-                
-                // 'data-target' se card ki ID uthayega
-                const targetCardId = this.getAttribute('data-target');
-                const targetCard = document.getElementById(targetCardId);
-                
-                if (targetCard) {
-                    // Us  andar chhupe hue rows dhoondhega
-                    const hiddenRows = targetCard.querySelectorAll('.table-row-hidden');
-                    
-                    hiddenRows.forEach(row => {
-                        // Toggles display between 'table-row' (taaki table layout na bigde) and 'none'
-                        row.style.display = (row.style.display === 'table-row') ? 'none' : 'table-row';
-                    });
-
-                    // Toggles the button text
-                    if (this.textContent === 'See All') {
-                        this.textContent = 'Show Less';
-                    } else {
-                        this.textContent = 'See All';
-                    }
-                }
+        // ASSIGNED PATIENT SEARCH
+        document.getElementById("search-assigned").addEventListener("keyup", function () {
+            let value = this.value.toLowerCase();
+            document.querySelectorAll("#past-appointments-card tbody tr").forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
             });
         });
-
-        // Department waala script hata diya gaya hai kyunki uski zaroorat nahi hai.
-    });
     </script>
+    
+    <script src="../../static/js/dyanamic.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 
 </body>
 </html>

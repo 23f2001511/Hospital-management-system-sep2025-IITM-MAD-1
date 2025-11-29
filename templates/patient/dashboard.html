@@ -137,7 +137,7 @@
 
             <ul class="list-unstyled components">
                 <li class="active">
-                    <a href="#"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                    <a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                 </li>
 
                 <li>
@@ -149,12 +149,6 @@
                 <li>
                     <a href="{{ url_for('booked_appointment_list') }}">
                         <i class="bi bi-calendar-check-fill me-2"></i>My Appointments
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ url_for('medical_record') }}">
-                        <i class="bi bi-file-medical-fill me-2"></i>Medical Records
                     </a>
                 </li>
 
@@ -172,19 +166,18 @@
             <!-- TOP NAVBAR -->
             <nav class="navbar navbar-expand-lg navbar-light top-navbar">
                 <div class="container-fluid">
-                    <h4 class="mb-0">Welcome, {{ user.full_name }}</h4>
+                    <h4 class="mb-0">Patient Dashboard</h4>
 
                     <div class="d-flex align-items-center ms-auto">
                         <ul class="navbar-nav">
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-1 fs-4"></i>
+                                    <i class="bi bi-person-circle me-1 fs-4"></i>Welcome, {{ user.full_name }}
                                 </a>
 
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <li><a class="dropdown-item" href="{{ url_for('update_profile') }}">Edit Profile</a></li>
-                                    <li><a class="dropdown-item" href="#">View Report</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
                                 </ul>
@@ -195,6 +188,17 @@
             </nav>
 
             <div class="main-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
 
                 <!-- STAT CARDS -->
                 <div class="row mb-4">
@@ -224,35 +228,51 @@
                 </div>
 
                 <!-- DEPARTMENTS LIST -->
-                <div class="card mb-4">
+                <!-- DEPARTMENTS LIST (TABLE VIEW) -->
+                <div class="card mb-4" id ="departments-card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">Book an Appointment by Department</h5>
                     </div>
 
                     <div class="card-body" id="department-list">
-                        {% for department in departments %}
-                        <div class="list-group {% if loop.index > 3 %}d-none department-item-hidden{% endif %}">
-                            
-                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                {{ department.name }}
-                                <a href="{{url_for('view_department', department_id=department.id)}}" >
-                                    <span class="btn btn-sm btn-outline-primary" >View Details</span>
-                                </a>
-                            </div>
-                        </div>
-                        {% endfor %}
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="10%">Sr. No.</th>
+                                    <th>Department Name</th>
+                                    <th class="text-center" width="20%">Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for department in departments  %}
+                                <tr class="{% if loop.index > 5 %}table-row-hidden{% endif %}">
+                                    <td><b>{{ loop.index }}</b></td>
+                                    <td>{{ department.name }}</td>
+                                    <td class="text-center">
+                                        <a href="{{ url_for('view_department', department_id=department.id) }}" 
+                                        class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
 
                     <div class="card-footer text-center">
-                        <a href="#" class="text-primary fw-bold text-decoration-none" id="toggle-departments">See All</a>
+                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn"
+                           data-target="departments-card">See All</a>
                     </div>
                 </div>
+
 
                 <!-- UPCOMING APPOINTMENTS TABLE -->
                 <div class="card mb-4" id="appointments-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Upcoming Appointments</h5>
-                        <a href="#" class="btn btn-sm btn-primary">
+                        <a href="{{ url_for('doctor_list')}}" class="btn btn-sm btn-primary">
                             <i class="bi bi-plus-circle me-1"></i>New Appointment
                         </a>
                     </div>
@@ -266,22 +286,26 @@
                                         <th>Doctor Name</th>
                                         <th>Department</th>
                                         <th>Date & Time</th>
+                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for appointment in appointments %}
-                                        {% if appointment.status == 'booked' %}
-                                        <tr>
+                                    {% for appointment in appointments if appointment.status.lower() == 'booked' %}
+                                        <tr class="{% if loop.index > 4 %}table-row-hidden{% endif %}">
                                             <td>{{ loop.index }}</td>
                                             <td>{{ appointment.doctor.user.full_name }}</td>
-                                            <td>{{ appointment.department.name }}</td>
-                                            <td>{{ appointment.appointment_date }}</td>
+                                            <td>{{ appointment.doctor.specialization }}</td>
+                                            <td>{{ appointment.appointment_datetime }}</td>
+                                            <td>{{ appointment.status|capitalize }}</td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                                                <a href="{{ url_for('cancel_appointment', appointment_id=appointment.id) }}"
+                                                   class="btn btn-sm btn-outline-danger">
+                                                    Cancel
+                                                </a>
                                             </td>
                                         </tr>
-                                        {% endif %}
+                                        
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -302,49 +326,10 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-
-            /* ================= APPOINTMENTS SEE MORE ================= */
-            const seeMoreButtons = document.querySelectorAll('.see-more-btn');
-
-            seeMoreButtons.forEach(button => {
-                button.addEventListener('click', function (event) {
-                    event.preventDefault();
-
-                    const targetCardId = this.getAttribute('data-target');
-                    const targetCard = document.getElementById(targetCardId);
-
-                    if (targetCard) {
-                        const hiddenRows = targetCard.querySelectorAll('.table-row-hidden');
-
-                        hiddenRows.forEach(row => {
-                            row.style.display = (row.style.display === 'table-row') ? 'none' : 'table-row';
-                        });
-
-                        this.textContent = (this.textContent === 'See All') ? 'Show Less' : 'See All';
-                    }
-                });
-            });
-
-            /* ================= DEPARTMENTS SEE MORE ================= */
-            const toggleButton = document.getElementById('toggle-departments');
-            const hiddenItems = document.querySelectorAll('.department-item-hidden');
-
-            toggleButton.addEventListener('click', function (event) {
-                event.preventDefault();
-
-                hiddenItems.forEach(function(item) {
-                    item.classList.toggle('d-none');
-                });
-
-                toggleButton.textContent =
-                    (toggleButton.textContent === 'See All') ? 'Show Less' : 'See All';
-            });
-        });
-    </script>
+  
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+    <script src="../../static/js/dyanamic.js"></script>
 
 
 </body>

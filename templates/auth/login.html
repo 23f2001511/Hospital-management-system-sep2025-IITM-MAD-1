@@ -11,6 +11,16 @@
 
 </head>
 <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mt-2" style="font-weight:bold;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
 
  <!-- ======= NAVBAR ======= -->
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
@@ -26,8 +36,7 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item"><a class="nav-link " href="{{url_for('home')}}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Contact us</a></li>
+          
           
         </ul>
 
@@ -77,8 +86,8 @@
         <!-- Remember + Forgot -->
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="rememberMe" >
-            <label class="form-check-label" for="rememberMe">Remember me</label>
+            <input class="form-check-input" type="checkbox" id="rememberMe" required>
+            <label class="form-check-label" for="rememberMe">Check Info</label>
           </div>
           <a href="#" class="form-link">Forgot password?</a>
         </div>

@@ -28,7 +28,7 @@
         <li><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
         <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
         <li><a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-        <li><a href="#"><i class="bi bi-gear-fill me-2"></i>Profile_Settings</a></li>
+  
       </ul>
     </nav>
 
@@ -38,8 +38,12 @@
       <nav class="top-navbar d-flex justify-content-between align-items-center mb-4 px-3 py-2 shadow-sm">
         <h5 class="mb-0 fw-semibold">Add New Doctor</h5>
         <div class="dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle fs-4 text-primary"></i>
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+              <div class="text-end me-2 d-none d-md-block">
+                  <div class="fw-bold text-dark" style="font-size: 0.9rem;">Admin User</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">Administrator</div>
+              </div>
+              <i class="bi bi-person-circle fs-3 text-primary"></i>
           </a>
           <ul class="dropdown-menu dropdown-menu-end shadow-sm">
             
@@ -91,7 +95,7 @@
             </div>
 
             <!-- Gender -->
-            <div class="col-12">
+            <div class="col-6">
               <label class="form-label">Gender</label>
               <select class="form-select" name="gender" required>
                 <option value="" selected disabled>Select Gender...</option>
@@ -99,6 +103,10 @@
                 <option>Female</option>
                 <option>Other</option>
               </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Qualification</label>
+              <input type="text" class="form-control" name="qualification" placeholder="e.g.: MBBS,MD..." required />
             </div>
 
             <!-- Bio -->

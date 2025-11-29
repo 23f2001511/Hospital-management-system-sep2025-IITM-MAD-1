@@ -31,7 +31,7 @@
         <li><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
         <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
         <li class="active"><a href="{{ url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-        <li><a href="update_profile"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
+        
       </ul>
     </nav>
 
@@ -43,9 +43,13 @@
           <h5 class="navbar-title mb-0">Appointments</h5>
           <ul class="navbar-nav ms-auto">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown">
-                <i class="bi bi-person-circle fs-4"></i>
-              </a>
+              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                    <div class="text-end me-2 d-none d-md-block">
+                        <div class="fw-bold text-dark" style="font-size: 0.9rem;">Admin User</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Administrator</div>
+                    </div>
+                    <i class="bi bi-person-circle fs-3 text-primary"></i>
+                </a>
               <ul class="dropdown-menu dropdown-menu-end">
                 
                 <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li>
@@ -82,20 +86,31 @@
                 </thead>
                 <tbody id="appointmentsTable">
                 {% for appointment in appointments %}
-                  <tr>
+                  <tr class="{% if loop.index > 8 %}table-row-hidden{% endif %}">
                     <td>{{loop.index}}</td>
-                    <td>{{appointment.patient.full_name}}</td>
-                    <td>{{appointment.doctor.full_name}}</td>
-                    <td>{{appointment.department.name}} </td>
+                    <td>{{appointment.patient.user.full_name}}</td>
+                    <td>{{appointment.doctor.user.full_name}}</td>
+                    <td>{{appointment.doctor.specialization}} </td>
                     <td>{{appointment.appointment_datetime}} </td>
                     <td><span class="badge bg-success">{{appointment.status}} </span></td>
-                    <td><a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> View</a></td>
+                    {% if appointment.status.lower() == 'completed' %}
+                      <td><a href="{{url_for('admin_view_report', appointment_id=appointment.id)}}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Report</a></td>
+                    {% elif appointment.status.lower() == 'cancelled' %}
+                      <td><button class="btn btn-sm btn-outline-primary" disabled><i class="bi bi-eye"></i> Report</button></td>
+                    {% else %}
+                      <td><button class="badge bg-success" disabled><i class="bi bi-check"></i> Pending</button></td>
+
+                    {% endif %}
                   </tr>
                 {% endfor %}
                 </tbody>
               </table>
             </div>
+            <div class="card-footer text-center">
+            <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="appointmentsTable">See All</a>
           </div>
+          </div>
+          
 
           <!-- Footer -->
           <div class="footer mt-4 text-center text-muted">
@@ -108,6 +123,7 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../static/js/dyanamic.js"></script>
 
   <!-- Table Search Filter -->
   <script>

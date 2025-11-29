@@ -30,26 +30,12 @@ def create_admin_user():
     else:
         print("Admin user already exists.")
 
-# def admin_required(f):
-#     """
-#     Yeh decorator check karta hai ki user admin hai ya nahin.
-#     Agar nahin, to use home page par bhej deta hai.
-#     """
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if not current_user.is_authenticated or current_user.role.lower() != 'admin':
-#             flash('Access Denied: You do not have permission to view this page.', 'danger')
-#             return redirect(url_for('home')) # home function routes.py mein hai
-#         return f(*args, **kwargs)
-#     return decorated_function
-
-
 
 
 def save_picture(form_picture):
     # Picture ko save karne ka logic...
     filename = form_picture.filename
-    picture_path = os.path.join(current_app.root_path, 'static/img/profile_pics', filename)
+    picture_path = os.path.join(current_app.root_path, 'static/img', filename)
     form_picture.save(picture_path)
     return filename
 

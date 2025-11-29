@@ -16,7 +16,7 @@ class User(db.Model, UserMixin):
     age = db.Column(db.Integer(),  nullable=False)
     gender = db.Column(db.String(10) , nullable=False)
     role = db.Column(db.String(50), nullable=False ,default='Patient')  # 'admin', 'doctor', 'patient'
-    profile_picture = db.Column(db.String(250), nullable=True, default='default.jpg')
+    profile_picture = db.Column(db.String(250), nullable=True, default='default.png')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -40,9 +40,11 @@ class Doctor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=False)
+    qualification = db.Column(db.String(150), nullable=False)
     specialization = db.Column(db.String(100), nullable=False)
     experience_years = db.Column(db.Integer, nullable=False)
     bio = db.Column(db.Text, nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
     
     # Relationships
     appointments = db.relationship('Appointment', backref='doctor')
@@ -56,6 +58,7 @@ class Patient(db.Model):
     date_of_birth = db.Column(db.Date, nullable=True)
     gender = db.Column(db.String(10), nullable=True)
     address = db.Column(db.String(250), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
     
     # Relationship
     appointments = db.relationship('Appointment', backref='patient')

@@ -43,9 +43,6 @@
                 <li>
                     <a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
                 </li>
-                 <li>
-                    <a href="{{url_for('update_profile')}}"><i class="bi bi-gear-fill me-2"></i>Settings</a>
-                </li>
             </ul>
         </nav>
 
@@ -139,11 +136,13 @@
                                 </thead>
                                 <tbody>
                                   {% for doctor in doctors %}
-                                    <tr>
+                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
                                         <td>{{ loop.index }}</td>
                                         <td>{{ doctor.user.full_name }}</td>
                                         <td>{{ doctor.department.name }}</td>
-                                        <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-primary">View Profile <i class="bi bi-arrow-right-short"></i></button></td>
+                                        <td class="text-center actions-cell">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('view_doctor', doctor_id=doctor.id) }}'">View Profile <i class="bi bi-arrow-right-short"></i></button>
+                                        </td>
                                     </tr>
                                   {% endfor %}
                                 </tbody>
@@ -173,11 +172,13 @@
                                 </thead>
                                 <tbody>
                                   {% for patient in patients %}
-                                    <tr>
+                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
                                         <td>{{ loop.index }}</td>
                                         <td>{{ patient.user.full_name }}</td>
                                         <td>{{ patient.gender }}</td>
-                                        <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-primary">View Details <i class="bi bi-arrow-right-short"></i></button></td>
+                                        <td class="text-center actions-cell">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('view_patient', patient_id=patient.id) }}'">View Details <i class="bi bi-arrow-right-short"></i></button>
+                                        </td>
                                     </tr>
                                   {% endfor %}
                                 </tbody>
@@ -210,11 +211,11 @@
                                 {% set i = 1 %}
                                   {% for appointment in appointments %}
                                     {% if appointment.status == "booked" %}
-                                      <tr>
+                                      <tr class="{% if i > 3 %}table-row-hidden{% endif %}">
                                           <td>{{ i }}</td>
-                                          <td>{{ appointment.patient.full_name }}</td>
-                                          <td>{{ appointment.doctor.full_name }}</td>
-                                          <td>{{ appointment.department.name }}</td>
+                                          <td>{{ appointment.patient.user.full_name }}</td>
+                                          <td>{{ appointment.doctor.user.full_name }}</td>
+                                          <td>{{ appointment.doctor.specialization }}</td>
                                           <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-success">View</button></td>
                                       </tr>
                                       {% set i = i + 1 %}

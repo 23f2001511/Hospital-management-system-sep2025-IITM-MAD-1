@@ -25,11 +25,10 @@
       </div>
 
       <ul class="list-unstyled components mt-3">
-        <li><a href="#"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-        <li class="active"><a href="#"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
-        <li><a href="#"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
-        <li><a href="#"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-        <li><a href="#"><i class="bi bi-gear-fill me-2"></i>Settings</a></li>
+        <li><a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+        <li class="active"><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
+        <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
+        <li><a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
       </ul>
     </nav>
 
@@ -39,14 +38,16 @@
       <nav class="top-navbar d-flex justify-content-between align-items-center mb-4 px-3 py-2 shadow-sm">
         <h5 class="mb-0 fw-semibold">Edit Doctor</h5>
         <div class="dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle fs-4 text-primary"></i>
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+              <div class="text-end me-2 d-none d-md-block">
+                  <div class="fw-bold text-dark" style="font-size: 0.9rem;">Admin User</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">Administrator</div>
+              </div>
+              <i class="bi bi-person-circle fs-3 text-primary"></i>
           </a>
           <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-            <li><a class="dropdown-item" href="#">Profile</a></li>
-            <li><a class="dropdown-item" href="#">Settings</a></li>
             <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
+            <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li>
           </ul>
         </div>
       </nav>
@@ -61,36 +62,37 @@
             </a>
           </div>
 
-          <form id="edit-doctor-form" class="row g-4">
+          <form  action="{{url_for('edit_doctor' , doctor_id=doctor.id)}}" method='post'>
+            <div id="edit-doctor-form" class="row g-4">
             <!-- Full Name -->
             <div class="col-md-6">
-              <label class="form-label">Full Name</label>
-              <input type="text" class="form-control" id="doctorName" value="Dr. Abcde" required />
+              <label class="form-label" for="doctorName">Full Name</label>
+              <input type="text" class="form-control" name="full_name" id="doctorName" value="{{doctor.user.full_name}}" required />
             </div>
 
             <!-- Department -->
             <div class="col-md-6">
-              <label class="form-label">Department</label>
-              <input type="text" class="form-control" id="doctorDept" value="Cardiology Department" required />
+              <label class="form-label" for="doctorDept">Department</label>
+              <input type="text" class="form-control" id="doctorDept" name="specialization" value="{{doctor.specialization}}" />
             </div>
 
             <!-- Experience -->
             <div class="col-md-6">
-              <label class="form-label">Experience (Years)</label>
-              <input type="number" class="form-control" id="doctorExp" value="10" min="0" required />
+              <label class="form-label" for="doctorExp">Experience (Years)</label>
+              <input type="number" class="form-control" id="doctorExp" name="experience_years" value="{{doctor.experience_years}}" min="0" required />
             </div>
 
             <!-- Email -->
             <div class="col-md-6">
               <label class="form-label">Email</label>
-              <input type="email" class="form-control" id="doctorEmail" value="abcde@hospital.com" readonly />
+              <input type="email" class="form-control" id="doctorEmail" value="{{doctor.user.email}}" readonly />
               <small class="form-text text-muted">You can't edit this email</small>
             </div>
 
             <!-- Phone -->
             <div class="col-md-6">
-              <label class="form-label">Phone</label>
-              <input type="tel" class="form-control" id="doctorPhone" value="+91 9876543210" required />
+              <label class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="doctorPhone" name="phone_number" value="{{doctor.user.phone_number}}" required />
             </div>
 
             <!-- Buttons -->
@@ -102,6 +104,7 @@
                 <i class="bi bi-x-circle me-2"></i>Cancel
               </button>
             </div>
+          </div>
           </form>
         </div>
       </div>
