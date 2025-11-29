@@ -114,7 +114,7 @@ def change_password():
         db.session.commit()
 
         flash("✅ Password updated successfully!", "success")
-        return redirect(url_for('login'))  # Optional → force re-login
+        return redirect(url_for('update_profile'))
     return render_template("auth/profile_setting.html")
 
 
@@ -147,9 +147,9 @@ def update_profile():
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
             
-            # Check if the user selected a file (filename is not empty)
+           
             if file.filename != '':
-                # Clean the filename to ensure it's safe
+                
                 filename = secure_filename(file.filename)
                 picture_file = save_picture(file)
                 user.profile_picture = picture_file
@@ -208,9 +208,8 @@ def patient_dashboard():
     if current_user.role.lower() != 'patient' or not current_user.patient.is_active:
         flash('You are bloked or not Patient ,Access denied.', 'danger')
         return redirect(url_for('login'))
-    flash('Welcome to your dashboard!', 'success')
-    # Here you can add logic to fetch patient-specific data
-    # For example, appointments, medical history, etc.
+    
+   
     departments = Department.query.all()
     appointments = Appointment.query.filter_by(patient_id=current_user.patient.id).all()
     upcoming_appointments_count = Appointment.query.filter(Appointment.patient_id==current_user.patient.id,Appointment.status=='booked').count()
@@ -492,16 +491,13 @@ def admin_view_report(appointment_id):
 
 
 
-@app.route('/weekly/provide_availability' , methods=['POST' , 'GET'])
+@app.route('/doctor/provide/weekly_availability' , methods=['POST' , 'GET'])
 @login_required
 def set_availability():
-    # Maan lete hain ki 'current_user' hi 'doctor' object hai
-    # Agar nahi, toh aapko doctor ko fetch karna hoga, jaise:
-    # doctor = Doctor.query.filter_by(user_id=current_user.id).first()
-    # doctor_id = doctor.id
-    doctor_id = current_user.id # Abhi ke liye yeh maan lete hain
+    
+    doctor_id = current_user.id
 
-    # 2. Apne fixed time slots ko Python 'time' objects me define karein
+    # Apne fixed time slots ko Python 'time' objects me define karein
     # Yeh HTML ke 'slot1' aur 'slot2' se match honge
     MORNING_START = time(8, 0, 0)  # 08:00 AM
     MORNING_END = time(12, 0, 0) # 12:00 PM
@@ -513,7 +509,7 @@ def set_availability():
             days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
             
             for day in days:
-                # 3. Check karein 'Not Available' switch ON hai ya nahi
+                # Check karein 'Not Available' switch ON hai ya nahi
                 is_off = f'{day}-off' in request.form
                 
                 # Default values ko None set karein
@@ -522,9 +518,9 @@ def set_availability():
                 start_evening = None
                 end_evening = None
 
-                # 4. Agar doctor OFF nahi hai, tabhi slots check karein
+                # Agar doctor OFF nahi hai, to slots check  
                 if not is_off:
-                    available_slots = request.form.getlist(day) # Jaise ['slot1', 'slot2']
+                    available_slots = request.form.getlist(day)     # eg. ['slot1', 'slot2']
                     
                     if 'slot1' in available_slots:
                         start_morning = MORNING_START
@@ -534,12 +530,12 @@ def set_availability():
                         start_evening = EVENING_START
                         end_evening = EVENING_END
                 
-                # 5. Database update/create karein (Aapke Model ke hisaab se)
+              
                 
-                # Pehle check karein ki entry hai ya nahi
+                # check Dr ki availability pehle se DB me hai ya nahi
                 avail = DoctorAvailability.query.filter_by(
                     doctor_id=doctor_id, 
-                    day_of_week=day.capitalize() # 'monday' ko 'Monday' banakar save karein
+                    day_of_week=day.capitalize()
                 ).first()
                 
                 if avail:
@@ -562,7 +558,6 @@ def set_availability():
                     )
                     db.session.add(avail)
 
-            # 6. Database me changes save karein
             db.session.commit()
             flash('Availability updated successfully!', 'success')
             
@@ -572,16 +567,14 @@ def set_availability():
 
         return redirect(url_for('set_availability'))
 
-    # GET Request: Jab page load ho, toh purani settings dikhayein
-    
-    # Doctor ki current availability DB se fetch karein
+    # GET request ke liye, pehle se maujood availability fetch kiya
     current_availability_db = DoctorAvailability.query.filter_by(doctor_id=doctor_id).all()
     
     # Ise ek simple dictionary me badal dein taaki template me bheja ja sake
     # Key: 'monday', Value: poora 'avail' object
     availability_data = {}
     for item in current_availability_db:
-        day_name = item.day_of_week.lower() # 'Monday' ko 'monday'
+        day_name = item.day_of_week.lower() 
         availability_data[day_name] = item # Poora object save kar rahe hain
 
     return render_template('doctor/provide_availability.html', availability_data=availability_data)
@@ -617,7 +610,7 @@ def save_patient_history(appointment_id):
 
     appointment = Appointment.query.get_or_404(appointment_id)
 
-    history = appointment.history  # existing or None
+    history = appointment.history 
 
     if not history:
         history = PatientHistory(appointment_id=appointment.id)
@@ -632,15 +625,14 @@ def save_patient_history(appointment_id):
     PrescribedMedicine.query.filter_by(history_id=history.id).delete()
 
     # new medicines list
-    meds = request.form.getlist("medicine_name[]")
-    doses = request.form.getlist("dosage[]")
+    meds = request.form.get("medicine_name")
+    doses = request.form.get("dosage")
 
-    for med, dose in zip(meds, doses):
-        if med.strip():
-            new_med = PrescribedMedicine(history_id=history.id,
-                                         medicine_name=med,
-                                         dosage=dose)
-            db.session.add(new_med)
+   
+    new_med = PrescribedMedicine(history_id=history.id,
+                                    medicine_name=meds,
+                                    dosage=doses)
+    db.session.add(new_med)
 
     db.session.commit()
     flash("History Updated Successfully ✔", "success")

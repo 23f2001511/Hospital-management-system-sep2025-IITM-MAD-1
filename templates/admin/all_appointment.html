@@ -14,6 +14,7 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="../../static/css/admin/all_appointments.css" />
+  <link rel="stylesheet" href="../../static/css/style.css">
 </head>
 
 <body>
@@ -94,11 +95,17 @@
                     <td>{{appointment.appointment_datetime}} </td>
                     <td><span class="badge bg-success">{{appointment.status}} </span></td>
                     {% if appointment.status.lower() == 'completed' %}
-                      <td><a href="{{url_for('admin_view_report', appointment_id=appointment.id)}}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Report</a></td>
+                      <td>
+                        <button onclick="location.href='{{url_for('admin_view_report', appointment_id=appointment.id)}}'" class="badge bg-primary"><i class="bi bi-eye"></i> Report</button>
+                      </td>
                     {% elif appointment.status.lower() == 'cancelled' %}
-                      <td><button class="btn btn-sm btn-outline-primary" disabled><i class="bi bi-eye"></i> Report</button></td>
+                      <td>
+                        <button class="btn btn-sm btn-primary" disabled><i class="bi bi-x-circle"></i> Report</button>
+                      </td>
                     {% else %}
-                      <td><button class="badge bg-success" disabled><i class="bi bi-check"></i> Pending</button></td>
+                      <td>
+                        <button class="badge bg-success" disabled><i class="bi bi-check"></i> Pending</button>
+                      </td>
 
                     {% endif %}
                   </tr>
