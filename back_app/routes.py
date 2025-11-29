@@ -72,7 +72,8 @@ def login():
             elif user.role.lower() == 'admin':
                 return redirect(url_for('admin_dashboard'))
             else:
-                return redirect(url_for('home'))
+                
+                return redirect(url_for('login'))
             flash('Logged in successfully!', 'success')
         else:
             flash('Invalid email or password.', 'danger')
@@ -115,6 +116,24 @@ def change_password():
         flash("✅ Password updated successfully!", "success")
         return redirect(url_for('login'))  # Optional → force re-login
     return render_template("auth/profile_setting.html")
+
+
+@app.route("/appointment/update_status/<int:appointment_id>/<string:new_status>")
+@login_required
+def update_appointment_status(appointment_id, new_status):
+
+    valid_status = ["Scheduled", "Completed", "Cancelled", "Booked"]
+
+    if new_status not in valid_status:
+        flash("Invalid status!", "danger")
+        return redirect(request.referrer)
+
+    appointment = Appointment.query.get_or_404(appointment_id)
+    appointment.status = new_status
+    db.session.commit()
+
+    flash(f"Appointment marked as {new_status}", "success")
+    return redirect(request.referrer)
 
 
 
@@ -590,22 +609,6 @@ def manage_appointment():
     return render_template('doctor/manage_appointment.html', appointments=appointments , upcomming_count=upcomming_count ,done_count=done_count)
 
 
-@app.route("/appointment/update_status/<int:appointment_id>/<string:new_status>")
-@login_required
-def update_appointment_status(appointment_id, new_status):
-
-    valid_status = ["Scheduled", "Completed", "Cancelled", "Booked"]
-
-    if new_status not in valid_status:
-        flash("Invalid status!", "danger")
-        return redirect(request.referrer)
-
-    appointment = Appointment.query.get_or_404(appointment_id)
-    appointment.status = new_status
-    db.session.commit()
-
-    flash(f"Appointment marked as {new_status}", "success")
-    return redirect(request.referrer)
 
 
 @app.route("/doctor/history/save/<int:appointment_id>", methods=["POST"])
@@ -807,17 +810,6 @@ def book_appointment_slot():
 
 
 
-@app.route('/appointment/cancel/<int:appointment_id>', methods=['GET'])
-@login_required
-def cancel_appointment(appointment_id):
-    if current_user.role.lower() != 'patient':
-        flash('Access denied', 'danger')
-        return redirect(url_for('home')) 
-    appointment = Appointment.query.get_or_404(appointment_id)
-    appointment.status = 'cancelled'
-    db.session.commit()
-    flash('Appointment cancelled successfully.', 'success')
-    return redirect(url_for('assigned_patients'))
 
 
 

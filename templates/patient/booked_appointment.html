@@ -109,9 +109,10 @@
                                         <td>{{ appointment.appointment_datetime }}</td>
                                         <td>{{appointment.status|capitalize}}</td>
                                         <td>
-                                            <a href="{{ url_for('cancel_appointment', appointment_id=appointment.id) }}"
-                                                class="btn btn-sm btn-outline-danger">
-                                                Cancel
+                                            <!-- Cancel -->
+                                            <a href="{{ url_for('update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}"
+                                               class="btn btn-sm btn-danger">
+                                                <i class="bi bi-x-circle"></i> Cancel
                                             </a>
                                            
 
