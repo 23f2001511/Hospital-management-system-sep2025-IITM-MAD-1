@@ -66,7 +66,6 @@ MAD-1-WEB-APP/
 │   ├── auth/                     # Login, Register, Profile
 │   ├── doctor/                   # Doctor panel pages
 │   ├── patient/                  # Appointment + Report UI
-│   ├── base.html                 # Main layout template
 │   └── home.html                 # Landing page
 │
 ├── app.py                        # Runs Flask server & initializes the application
