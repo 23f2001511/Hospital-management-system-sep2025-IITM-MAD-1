@@ -90,21 +90,16 @@
                 {% endwith %}
 
                 <!-- Upcoming Appointments -->
-<<<<<<< HEAD
+
                 <div class="card mb-4" >
-=======
-                <div class="card mb-4" id="appointments-card">
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Upcoming Appointments</h5>
                         <span class="badge bg-primary rounded-pill">{{t_upcomming_appt }} new</span>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-<<<<<<< HEAD
-=======
-                            <input type="text" id="search-upcoming" class="form-control mb-2" placeholder="Search patient name, gender, date...">
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
 
                             <table class="table table-hover align-middle">
                                 <thead>
@@ -117,11 +112,10 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-<<<<<<< HEAD
+
                                 <tbody id="HMSTable">
-=======
-                                <tbody>
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
+                               
                               
                                 {% for appointment in appointments if appointment.status == 'booked' %}
                                     <tr class="{% if loop.index > 5 %}table-row-hidden{% endif %}">
@@ -239,32 +233,22 @@
                         </div>
                     </div>
                     <div class="card-footer text-center">
-<<<<<<< HEAD
+
                         <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
-=======
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="appointments-card">See All</a>
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
                     </div>
                 </div>
 
                 <!-- Assigned Patients (Past / Completed / Cancelled) -->
-<<<<<<< HEAD
                 <div class="card mb-4" >
-=======
-                <div class="card mb-4" id="patients-card">
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Assigned Patients</h5>
                         <span class="badge bg-info rounded-pill">{{ t_done_appt }} Checked</span>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-<<<<<<< HEAD
                             <input type="text" id="HMSSearchInput" class="form-control mb-2" placeholder="Search patient or date...">
-=======
-                            <input type="text" id="search-assigned" class="form-control mb-2" placeholder="Search patient or date...">
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
-
                             <table class="table table-hover align-middle">
                                 <thead>
                                     <tr>
@@ -275,11 +259,8 @@
                                         <th>Status</th>
                                     </tr>
                                 </thead>
-<<<<<<< HEAD
                                 <tbody id="HMSTable">
-=======
-                                <tbody>
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
                                
                                 {% for appointment in appointments if appointment.status != 'booked' %}
                                     
@@ -370,17 +351,12 @@
                                                                     <!-- At least one empty row if no medicine saved -->
                                                                     <div class="row medicine-row align-items-center mb-2">
                                                                         <div class="col-md-5">
-<<<<<<< HEAD
+
                                                                             <input type="text" class="form-control" name="medicine_name" placeholder="'Medicine name">
                                                                         </div>
                                                                         <div class="col-md-5">
                                                                             <input type="text" class="form-control" name="dosage" placeholder="Dosage (e.g., 1-0-1)">
-=======
-                                                                            <input type="text" class="form-control" name="medicine_name" placeholder="{{ appointment.history.medicines.medicine_name or 'Medicine name'}}">
-                                                                        </div>
-                                                                        <div class="col-md-5">
-                                                                            <input type="text" class="form-control" name="dosage" placeholder="{{ appointment.history.medicines.dosage or 'Dosage (e.g., 1-0-1)'}}">
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
                                                                         </div>
                                                                        
                                                                     </div
@@ -405,11 +381,9 @@
                         </div>
                     </div>
                     <div class="card-footer text-center">
-<<<<<<< HEAD
+
                         <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
-=======
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="patients-card">See All</a>
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
+
                     </div>
                 </div>
             </div>
@@ -422,29 +396,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../static/js/dyanamic.js"></script>
-<<<<<<< HEAD
 
-=======
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-
-                // UPCOMING APPOINTMENTS SEARCH
-        document.getElementById("search-upcoming").addEventListener("keyup", function () {
-            let value = this.value.toLowerCase();
-            document.querySelectorAll("#appointments-card tbody tr").forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
-            });
-        });
-
-        // ASSIGNED PATIENT SEARCH
-        document.getElementById("search-assigned").addEventListener("keyup", function () {
-            let value = this.value.toLowerCase();
-            document.querySelectorAll("#patients-card tbody tr").forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
-            });
-        });
-
-    </script>
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265
 </body>
 </html>
