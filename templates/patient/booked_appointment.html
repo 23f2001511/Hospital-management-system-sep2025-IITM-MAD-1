@@ -8,11 +8,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../static/css/style.css">
+<<<<<<< HEAD
 
     <style>    
     .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     </style>
 
+=======
+    <style>
+        
+       
+        
+        
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    </style>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
 </head>
 <body>
     <div class="wrapper">
@@ -95,7 +105,11 @@
                                     <!-- Example Row 1 -->
                                     <tr>
                                         <td>{{ loop.index }}</td>
+<<<<<<< HEAD
                                         <td>Dr. {{ appointment.doctor.user.full_name }}</td>
+=======
+                                        <td>{{ appointment.doctor.user.full_name }}</td>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                                         <td>{{ appointment.doctor.specialization }}</td>
                                         <td>{{ appointment.appointment_datetime }}</td>
                                         <td>{{appointment.status|capitalize}}</td>
@@ -125,7 +139,10 @@
                     </div>
                     <div class="card-body" >
                         <div class="table-responsive" id="past-appointments">
+<<<<<<< HEAD
                             <input type=text id="HMSSearchInput" class="form-control mb-2" placeholder="Search Appointments......" />
+=======
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
@@ -137,12 +154,21 @@
                                         <th>Action</th>
                                     </tr>
                                 </thead>
+<<<<<<< HEAD
                                 <tbody id="HMSTable">
                                 {% for appointment in appointments if appointment.status != 'booked' %}
                                     <!-- Example Row 1 -->
                                     <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
                                         <td>{{ loop.index }}</td>
                                         <td>Dr. {{ appointment.doctor.user.full_name }}</td>
+=======
+                                <tbody>
+                                {% for appointment in appointments if appointment.status != 'booked' %}
+                                    <!-- Example Row 1 -->
+                                    <tr class="{% if loop.index > 2 %}table-row-hidden{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ appointment.doctor.user.full_name }}</td>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                                         <td>{{ appointment.doctor.specialization }}</td>
                                         <td>{{ appointment.appointment_datetime }}</td>
                                         {% if appointment.status.lower() == 'completed' %}
@@ -168,10 +194,19 @@
                                 {% endfor %}
                                 </tbody>
                             </table>
+<<<<<<< HEAD
                             
                         </div>
                         
                     </div>
+=======
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn"
+                            data-target="past-appointments">See All</a>
+                        </div>
+                </div>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                     
                 </div>
                 

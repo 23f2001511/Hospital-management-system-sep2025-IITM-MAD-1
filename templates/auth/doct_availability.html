@@ -246,8 +246,68 @@
 </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<<<<<<< HEAD
     <script scr="../../static/js/dyanamic.js"></script>
     
 
+=======
+    
+   
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var bookingModal = document.getElementById('bookingModal');
+        var dateInput = document.getElementById('appointment_date');
+        var requiredDayName = ""; // Yahan hum store karenge ki user ne konsa din click kiya (e.g., 'Monday')
+
+        // Day Name ko Number me convert karne ke liye map (Sunday=0, Monday=1, etc.)
+        const dayMap = {
+            'Sunday': 0,
+            'Monday': 1,
+            'Tuesday': 2,
+            'Wednesday': 3,
+            'Thursday': 4,
+            'Friday': 5,
+            'Saturday': 6
+        };
+
+        // 1. Jab Modal Khulega
+        bookingModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            
+            // Data fetch kar rahe hain button se
+            requiredDayName = button.getAttribute('data-day'); // e.g., "Monday"
+            var slot = button.getAttribute('data-slot'); 
+            var startTime = button.getAttribute('data-time');
+
+            // Modal ke text update karo
+            document.getElementById('modalDayDisplay').textContent = requiredDayName;
+            document.getElementById('modalDayHint').textContent = requiredDayName;
+            document.getElementById('modalSlotDisplay').textContent = slot;
+            document.getElementById('modalSlotTime').value = startTime;
+
+            // Purani date clear kar do taaki user fresh select kare
+            dateInput.value = "";
+        });
+
+        // 2. Jab User Date Change karega (Validation Logic)
+        dateInput.addEventListener('change', function() {
+            var inputDate = new Date(this.value);
+            
+            // Note: Kabhi kabhi timezone ki wajah se date 1 din piche ho jati hai JS me
+            // Isliye hum day index nikaalne ke liye thoda safe method use karenge
+            var dayIndex = inputDate.getDay(); 
+
+            var requiredIndex = dayMap[requiredDayName];
+
+            // Agar din match nahi hua
+            if (dayIndex !== requiredIndex) {
+                alert("Incorrect Date! Please select a date that is a " + requiredDayName + ".");
+                this.value = ""; // Galat date ko hata do
+            }
+        });
+    });
+</script>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
 </body>
 </html>

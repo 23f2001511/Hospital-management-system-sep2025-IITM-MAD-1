@@ -116,7 +116,11 @@
                 <!-- Department List HATA DI GAYI HAI -->
 
                 <!-- Upcoming Appointments -->
+<<<<<<< HEAD
                 <div class="card mb-4" >
+=======
+                <div class="card mb-4" id="upcoming-appointments-card">
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Upcoming Appointments</h5>
                         <!-- Yahan badge laga diya hai (jaisa image me tha) -->
@@ -124,7 +128,11 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
+<<<<<<< HEAD
 
+=======
+                            
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                             <table class="table table-hover align-middle">
                                 <thead>
                                     <tr>
@@ -136,7 +144,11 @@
                                         <th>Action</th>
                                     </tr>
                                 </thead>
+<<<<<<< HEAD
                                 <tbody id="HMSTable">
+=======
+                                <tbody>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                                     <!-- Yahan aap apne loop variable (`appointments`) daal sakte hain -->
                                 {% if appointments %}
                                 {% for appointment in appointments if appointment.status == 'booked'%}
@@ -170,20 +182,32 @@
                     </div>
                     <div class="card-footer text-center">
                         <!-- 'data-target' ID match kar raha hai upar wale card ki ID se -->
+<<<<<<< HEAD
                         <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
+=======
+                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="upcoming-appointments-card">See All</a>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                     </div>
                 </div>
 
 
                 <!-- Past/Completed Appointments -->
+<<<<<<< HEAD
                 <div class="card mb-4" >
+=======
+                <div class="card mb-4" id="past-appointments-card">
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Past Appointments</h5>
                         <span class="badge bg-secondary rounded-pill">{{done_count}} Checked</span>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
+<<<<<<< HEAD
                             <input type="text" id="HMSSearchInput" class="form-control mb-2" placeholder="Search patient or date...">
+=======
+                            <input type="text" id="search-assigned" class="form-control mb-2" placeholder="Search patient or date...">
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                             <table class="table table-hover align-middle">
                                 <thead>
                                     <tr>
@@ -194,7 +218,11 @@
                                         <th>Action</th>
                                     </tr>
                                 </thead>
+<<<<<<< HEAD
                                 <tbody id="HMSTable">
+=======
+                                <tbody>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                                 {% for appointment in appointments  if appointment.status != 'booked' %}
                                     <!-- Yahan aap apne 'past_appointments' ka loop daal sakte hain -->
                                     <tr class="{% if loop.index > 10 %}table-row-hidden{% endif %}">
@@ -227,7 +255,11 @@
                     </div>
                     <div class="card-footer text-center">
                          <!-- 'data-target' ID match kar raha hai upar wale card ki ID se -->
+<<<<<<< HEAD
                         <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
+=======
+                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="past-appointments-card">See All</a>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                     </div>
                 </div>
 
@@ -237,7 +269,19 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
    
+=======
+    <script>
+        // ASSIGNED PATIENT SEARCH
+        document.getElementById("search-assigned").addEventListener("keyup", function () {
+            let value = this.value.toLowerCase();
+            document.querySelectorAll("#past-appointments-card tbody tr").forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+            });
+        });
+    </script>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
     
     <script src="../../static/js/dyanamic.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -76,7 +76,11 @@
                                     <!-- Search Bar -->
                                     <div class="header-search">
                                         <i class="bi bi-search"></i>
+<<<<<<< HEAD
                                         <input type="text" class="form-control" id="HMSSearchInput" placeholder="Search by name or department...">
+=======
+                                        <input type="text" class="form-control" id="doctorSearchInput" placeholder="Search by name or department...">
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                                     </div>
 
                                     <!-- Add Doctor Button -->
@@ -101,11 +105,19 @@
                                             <th scope="col" class="text-center">Action</th>
                                         </tr>
                                     </thead>
+<<<<<<< HEAD
                                     <tbody id="HMSTable">
                                     {% for doctor in doctors %}    
                                         <tr class="{% if loop.index > 8 %}table-row-hidden{% endif %}"> 
                                             <td>{{loop.index}} </td>
                                             <td>Dr. {{doctor.user.full_name}} </td>
+=======
+                                    <tbody id="doctorsTableBody">
+                                    {% for doctor in doctors %}    
+                                        <tr class="{% if loop.index > 8 %}table-row-hidden{% endif %}"> 
+                                            <td>{{loop.index}} </td>
+                                            <td>{{doctor.user.full_name}} </td>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
                                             <td>{{doctor.department.name}} </td>
                                             <td>{{doctor.user.email}} </td>
                                             <td>{{doctor.user.phone_number}}</td>
@@ -141,5 +153,21 @@
     
     <script src="../../static/js/dyanamic.js"></script>
 
+<<<<<<< HEAD
+=======
+    <!-- JavaScript for Search -->
+    <script>
+        document.getElementById('doctorSearchInput').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll('#doctorsTableBody tr');
+
+            rows.forEach(row => {
+                let name = row.cells[1].innerText.toLowerCase();
+                let dept = row.cells[2].innerText.toLowerCase();
+                row.style.display = name.includes(filter) || dept.includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
+>>>>>>> f0fbd49828a773348e21a82e77974966fe905265
 </body>
 </html>
