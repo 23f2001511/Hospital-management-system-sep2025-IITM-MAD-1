@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Availability | HMS Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../static/css/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .card {
+             border: none;
+             border-radius: 12px;
+             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .availability-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .availability-row:last-child {
+            border-bottom: none;
+        }
+        .day-label {
+            font-weight: 600;
+            width: 120px;
+        }
+        .time-slots {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .not-available {
+            width: 150px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header d-flex align-items-center">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                    <!-- Aapka logo path -->
+                    <img src="{{ url_for('static', filename='img/mad1.png') }}" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+                </a>
+            </div>
+            <ul class="list-unstyled components">
+                <li class="active"><a href="{{ url_for('doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li><a href="{{url_for('manage_appointment')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+                <li><a href="{{ url_for('assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
+                
+                <li><a href="{{url_for('update_profile')}}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
+                <div class="container-fluid">
+                    <h4 class="mb-0">Manage Availability</h4>
+                    <div class="d-flex align-items-center ms-auto">
+                        <span class="navbar-text me-3">
+                            <!-- Yeh data Flask se aayega -->
+                            Welcome, Dr. {{ current_user.full_name }}
+                        </span>
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-1 fs-4"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" href="#">Edit Profile</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Set Your Weekly Availability</h5>
+                    </div>
+                    
+                    <form action="{{ url_for('set_availability') }}" method="POST">
+                        <div class="card-body p-4">
+                            
+                            <div class="days-list">
+                                
+                                <!-- Monday -->
+                                <div class="availability-row" data-day="monday">
+                                    <div class="day-label">Monday</div>
+                                    <div class="time-slots form-check-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="monday" id="mon-morning" value="slot1" 
+                                                   {{ 'checked' if availability_data.get('monday') and availability_data.get('monday').start_time_before_lunch }}>
+                                            <label class="form-check-label" for="mon-morning">08:00 AM - 12:00 PM</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="monday" id="mon-evening" value="slot2"
+                                                   {{ 'checked' if availability_data.get('monday') and availability_data.get('monday').start_time_after_lunch }}>
+                                            <label class="form-check-label" for="mon-evening">04:00 PM - 09:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="not-available form-check form-switch">
+                                        <input class="form-check-input not-available-check" type="checkbox" 
+                                               name="monday-off" role="switch" id="mon-off"
+                                               {{ 'checked' if availability_data.get('monday') and not availability_data.get('monday').is_available }}>
+                                        <label class="form-check-label" for="mon-off">Not Available</label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tuesday -->
+                                <div class="availability-row" data-day="tuesday">
+                                    <div class="day-label">Tuesday</div>
+                                    <div class="time-slots form-check-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="tuesday" id="tue-morning" value="slot1"
+                                                   {{ 'checked' if availability_data.get('tuesday') and availability_data.get('tuesday').start_time_before_lunch }}>
+                                            <label class="form-check-label" for="tue-morning">08:00 AM - 12:00 PM</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="tuesday" id="tue-evening" value="slot2"
+                                                   {{ 'checked' if availability_data.get('tuesday') and availability_data.get('tuesday').start_time_after_lunch }}>
+                                            <label class="form-check-label" for="tue-evening">04:00 PM - 09:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="not-available form-check form-switch">
+                                        <input class="form-check-input not-available-check" type="checkbox" 
+                                               name="tuesday-off" role="switch" id="tue-off"
+                                               {{ 'checked' if availability_data.get('tuesday') and not availability_data.get('tuesday').is_available }}>
+                                        <label class="form-check-label" for="tue-off">Not Available</label>
+                                    </div>
+                                </div>
+
+                                <!-- Wednesday -->
+                                <div class="availability-row" data-day="wednesday">
+                                    <div class="day-label">Wednesday</div>
+                                    <div class="time-slots form-check-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="wednesday" id="wed-morning" value="slot1"
+                                                   {{ 'checked' if availability_data.get('wednesday') and availability_data.get('wednesday').start_time_before_lunch }}>
+                                            <label class="form-check-label" for="wed-morning">08:00 AM - 12:00 PM</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="wednesday" id="wed-evening" value="slot2"
+                                                   {{ 'checked' if availability_data.get('wednesday') and availability_data.get('wednesday').start_time_after_lunch }}>
+                                            <label class="form-check-label" for="wed-evening">04:00 PM - 09:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="not-available form-check form-switch">
+                                        <input class="form-check-input not-available-check" type="checkbox" 
+                                               name="wednesday-off" role="switch" id="wed-off"
+                                               {{ 'checked' if availability_data.get('wednesday') and not availability_data.get('wednesday').is_available }}>
+                                        <label class="form-check-label" for="wed-off">Not Available</label>
+                                    </div>
+                                </div>
+
+                                <!-- Thursday (Yeh pichhli baar cut ho gaya tha) -->
+                                <div class="availability-row" data-day="thursday">
+                                    <div class="day-label">Thursday</div>
+                                    <div class="time-slots form-check-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="thursday" id="thu-morning" value="slot1"
+                                                   {{ 'checked' if availability_data.get('thursday') and availability_data.get('thursday').start_time_before_lunch }}>
+                                            <label class="form-check-label" for="thu-morning">08:00 AM - 12:00 PM</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="thursday" id="thu-evening" value="slot2"
+                                                   {{ 'checked' if availability_data.get('thursday') and availability_data.get('thursday').start_time_after_lunch }}>
+                                            <label class="form-check-label" for="thu-evening">04:00 PM - 09:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="not-available form-check form-switch">
+                                        <input class="form-check-input not-available-check" type="checkbox" 
+                                               name="thursday-off" role="switch" id="thu-off"
+                                               {{ 'checked' if availability_data.get('thursday') and not availability_data.get('thursday').is_available }}>
+                                        <label class="form-check-label" for="thu-off">Not Available</label>
+                                    </div>
+                                </div>
+
+                                <!-- Friday -->
+                                <div class="availability-row" data-day="friday">
+                                    <div class="day-label">Friday</div>
+                                    <div class="time-slots form-check-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="friday" id="fri-morning" value="slot1"
+                                                   {{ 'checked' if availability_data.get('friday') and availability_data.get('friday').start_time_before_lunch }}>
+                                            <label class="form-check-label" for="fri-morning">08:00 AM - 12:00 PM</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="friday" id="fri-evening" value="slot2"
+                                                   {{ 'checked' if availability_data.get('friday') and availability_data.get('friday').start_time_after_lunch }}>
+                                            <label class="form-check-label" for="fri-evening">04:00 PM - 09:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="not-available form-check form-switch">
+                                        <input class="form-check-input not-available-check" type="checkbox" 
+                                               name="friday-off" role="switch" id="fri-off"
+                                               {{ 'checked' if availability_data.get('friday') and not availability_data.get('friday').is_available }}>
+                                        <label class="form-check-label" for="fri-off">Not Available</label>
+                                    </div>
+                                </div>
+
+                                <!-- Saturday -->
+                                <div class="availability-row" data-day="saturday">
+                                    <div class="day-label">Saturday</div>
+                                    <div class="time-slots form-check-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="saturday" id="sat-morning" value="slot1"
+                                                   {{ 'checked' if availability_data.get('saturday') and availability_data.get('saturday').start_time_before_lunch }}>
+                                            <label class="form-check-label" for="sat-morning">08:00 AM - 12:00 PM</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="saturday" id="sat-evening" value="slot2"
+                                                   {{ 'checked' if availability_data.get('saturday') and availability_data.get('saturday').start_time_after_lunch }}>
+                                            <label class="form-check-label" for="sat-evening">04:00 PM - 09:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="not-available form-check form-switch">
+                                        <input class="form-check-input not-available-check" type="checkbox" 
+                                               name="saturday-off" role="switch" id="sat-off"
+                                               {{ 'checked' if availability_data.get('saturday') and not availability_data.get('saturday').is_available }}>
+                                        <label class="form-check-label" for="sat-off">Not Available</label>
+                                    </div>
+                                </div>
+
+                                <!-- Sunday -->
+                                <div class="availability-row" data-day="sunday">
+                                    <div class="day-label">Sunday</div>
+                                    <div class="time-slots form-check-group">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="sunday" id="sun-morning" value="slot1"
+                                                   {{ 'checked' if availability_data.get('sunday') and availability_data.get('sunday').start_time_before_lunch }}>
+                                            <label class="form-check-label" for="sun-morning">08:00 AM - 12:00 PM</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input time-slot-check" type="checkbox" 
+                                                   name="sunday" id="sun-evening" value="slot2"
+                                                   {{ 'checked' if availability_data.get('sunday') and availability_data.get('sunday').start_time_after_lunch }}>
+                                            <label class="form-check-label" for="sun-evening">04:00 PM - 09:00 PM</label>
+                                        </div>
+                                    </div>
+                                    <div class="not-available form-check form-switch">
+                                        <input class="form-check-input not-available-check" type="checkbox" 
+                                               name="sunday-off" role="switch" id="sun-off"
+                                               {{ 'checked' if availability_data.get('sunday') and not availability_data.get('sunday').is_available }}>
+                                        <label class="form-check-label" for="sun-off">Not Available</label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer text-end">
+                           
+                            <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-secondary  btn-lg"> ↩ Go Back</a>
+                        
+                            <button type="submit" class="btn btn-primary btn-lg">Save Availability</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+            <div class="footer mt-4 text-center text-muted">
+                © 2025 Hospital Management System | Doctor's Dashboard
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript (Jaisa tha waisa hi - Not Available switch logic) -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        const notAvailableSwitches = document.querySelectorAll('.not-available-check');
+
+        notAvailableSwitches.forEach(function(switchInput) {
+            
+            function toggleTimeSlots(isDisabled) {
+                const parentRow = switchInput.closest('.availability-row');
+                const timeSlots = parentRow.querySelectorAll('.time-slot-check');
+                
+                timeSlots.forEach(function(slot) {
+                    slot.disabled = isDisabled;
+                    if (isDisabled) {
+                        slot.checked = false;
+                    }
+                    updateLabelColor(slot); // Label color update function ko call karein
+                });
+            }
+
+            // Page load par check karo
+            toggleTimeSlots(switchInput.checked);
+
+            // Click event par check karo
+            switchInput.addEventListener('change', function() {
+                toggleTimeSlots(this.checked);
+            });
+        });
+
+        const timeSlotCheckboxes = document.querySelectorAll('.time-slot-check');
+        
+        // Label color update ke liye function
+        function updateLabelColor(slot) {
+            const label = slot.closest('.form-check').querySelector('label');
+            if (slot.disabled) {
+                label.classList.add('text-muted');
+                label.classList.remove('text-success');
+            } else {
+                label.classList.remove('text-muted');
+                if (slot.checked) {
+                    label.classList.add('text-success');
+                } else {
+                    label.classList.remove('text-success');
+                }
+            }
+        }
+
+        timeSlotCheckboxes.forEach(function(slot) {
+            // Page load par color set karo
+            updateLabelColor(slot);
+            
+            // Click par color badlo
+            slot.addEventListener('change', function() {
+                updateLabelColor(slot);
+            });
+        });
+
+    });
+    </script>
+
+    <!-- Bootstrap JS (Flash messages ko dismiss karne ke liye zaroori) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

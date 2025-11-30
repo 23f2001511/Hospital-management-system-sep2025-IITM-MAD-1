@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctors List | HMS Portal</title>
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Admin Stylesheet -->
+    <link rel="stylesheet" href="../../static/css/admin/all_users.css">
+    <link rel="stylesheet" href="../../static/css/style.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <!-- ======= SIDEBAR ======= -->
+        <nav id="sidebar">
+            <div class="sidebar-header d-flex align-items-center">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                    <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+                </a>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li><a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li class="active"><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
+                <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
+                <li><a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+               
+            </ul>
+        </nav>
+
+        <!-- ======= CONTENT WRAPPER ======= -->
+        <div id="content">
+            
+            <!-- ======= TOP NAVBAR ======= -->
+            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
+                <div class="container-fluid">
+                    <h5 class="navbar-title mb-0">Doctors</h5>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="text-end me-2 d-none d-md-block">
+                                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">Admin User</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Administrator</div>
+                                </div>
+                                <i class="bi bi-person-circle fs-3 text-primary"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                               
+                                <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- ======= MAIN CONTENT ======= -->
+            <div class="main-content">
+                <div class="container-fluid p-0">
+                    <div class="card content-panel">
+                        
+                        <!-- Header -->
+                        <div class="card-header panel-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">All Registered Doctors</h5>
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <!-- Search Bar -->
+                                    <div class="header-search">
+                                        <i class="bi bi-search"></i>
+                                        <input type="text" class="form-control" id="HMSSearchInput" placeholder="Search by name or department...">
+                                    </div>
+
+                                    <!-- Add Doctor Button -->
+                                    <a href="{{ url_for('add_doctor') }}" class="btn btn-primary btn-sm add-btn">
+                                        <i class="bi bi-plus-circle me-1"></i>Add New Doctor
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">Sr. No.</th>
+                                            <th scope="col">Doctor Name</th>
+                                            <th scope="col">Department</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col" class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="HMSTable">
+                                    {% for doctor in doctors %}    
+                                        <tr class="{% if loop.index > 8 %}table-row-hidden{% endif %}"> 
+                                            <td>{{loop.index}} </td>
+                                            <td>Dr. {{doctor.user.full_name}} </td>
+                                            <td>{{doctor.department.name}} </td>
+                                            <td>{{doctor.user.email}} </td>
+                                            <td>{{doctor.user.phone_number}}</td>
+                                            <td class="actions-cell text-center">
+                                                <a href="{{ url_for('view_doctor', doctor_id=doctor.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye-fill"></i> View Profile
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}        
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="card-footer text-center">
+                            <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="doctorsTableBody">See All</a>
+                        </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="footer mt-4 text-center text-muted">
+                    © 2025 Hospital Management System | Doctors List
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="../../static/js/dyanamic.js"></script>
+
+</body>
+</html>

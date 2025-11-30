@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments | HMS Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../static/css/style.css">
+
+    <style>    
+    .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    </style>
+
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header d-flex align-items-center">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                    <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+                </a>
+            </div>
+            <ul class="list-unstyled components">
+                <li><a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li><a href="{{ url_for('doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
+                <li class="active"><a href="{{ url_for('booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
+                <li><a href="{{ url_for('update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
+                <div class="container-fluid">
+                    <!-- Assuming you pass user object to template -->
+                    <h4 class="mb-0">Welcome,{{ current_user.full_name }}</h4> 
+                    <div class="d-flex align-items-center ms-auto">
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-1 fs-4"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('update_profile') }}">Edit Profile</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+            
+                <!-- Upcoming Appointments Section -->
+                
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Upcoming Appointments</h5>
+                        <a href="{{url_for('doctor_list')}}" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i> Book New Appointment</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sr No.</th>
+                                        <th>Doctor Name</th>
+                                        <th>Department</th>
+                                        <th>Date & Time</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for appointment in appointments if appointment.status == 'booked' %}
+                                    <!-- Example Row 1 -->
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>Dr. {{ appointment.doctor.user.full_name }}</td>
+                                        <td>{{ appointment.doctor.specialization }}</td>
+                                        <td>{{ appointment.appointment_datetime }}</td>
+                                        <td>{{appointment.status|capitalize}}</td>
+                                        <td>
+                                            <!-- Cancel -->
+                                            <a href="{{ url_for('update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}"
+                                               class="btn btn-sm btn-danger">
+                                                <i class="bi bi-x-circle"></i> Cancel
+                                            </a>
+                                           
+
+                                        </td>
+                                    </tr>
+                                    
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Past Appointments Section -->
+               
+                <div class="card mb-4" >
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Past Appointments</h5>
+                    </div>
+                    <div class="card-body" >
+                        <div class="table-responsive" id="past-appointments">
+                            <input type=text id="HMSSearchInput" class="form-control mb-2" placeholder="Search Appointments......" />
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sr No.</th>
+                                        <th>Doctor Name</th>
+                                        <th>Department</th>
+                                        <th>Date & Time</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="HMSTable">
+                                {% for appointment in appointments if appointment.status != 'booked' %}
+                                    <!-- Example Row 1 -->
+                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>Dr. {{ appointment.doctor.user.full_name }}</td>
+                                        <td>{{ appointment.doctor.specialization }}</td>
+                                        <td>{{ appointment.appointment_datetime }}</td>
+                                        {% if appointment.status.lower() == 'completed' %}
+                                            <td><span class="badge bg-success"> Completed</span></td>  
+                                        {% elif appointment.status.lower() == 'cancelled' %}
+                                            <td><span class="badge bg-danger">Cancelled</span></td>
+                                        {% endif %}
+
+                                        <td>
+                                            {% if appointment.status.lower() == 'completed' %}
+                                                <a href="{{ url_for('view_report', appointment_id=appointment.id) }}"
+                                                   class="btn btn-sm btn-primary">
+                                                    View Report
+                                                </a>
+                                            {% else %}
+                                                 <button class="btn btn-sm btn-primary" disabled>
+                                                    View Report
+                                                 </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                
+
+            
+            </div>
+            <div class="footer mt-4 text-center text-muted">
+                © 2025 Hospital Management System | HMS Portal
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../static/js/dyanamic.js"></script>
+    <!-- If you have dynamic elements, link your JS file -->
+    <!-- <script src="{{ url_for('static', filename='js/dynamic.js') }}"></script> -->
+</body>
+</html>

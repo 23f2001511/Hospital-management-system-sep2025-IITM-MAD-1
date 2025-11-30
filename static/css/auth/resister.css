@@ -1,0 +1,71 @@
+    /* ===== Navbar Styling ===== */
+.navbar {
+background-color: #f5f0f0ec !important; /* clean white background */
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-brand {
+font-weight: 700;
+color: #007bff !important; /* hospital blue */
+font-size: 1.3rem;
+}
+
+.navbar-nav .nav-link {
+font-weight: 500;
+color: #333333 !important; /* dark neutral for text */
+margin-right: 15px;
+transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+color: #007bff !important; /* hospital blue hover */
+transform: translateY(-2px);
+}
+
+.navbar .btn-outline-danger {
+border-color: #dc3545;
+color: #dc3545;
+border-radius: 8px;
+transition: all 0.3s ease;
+}
+
+.navbar .btn-outline-danger:hover {
+background-color: #dc3545;
+color: #fff;
+}
+
+.form-container {
+    max-width: 550px;
+    margin: 0 auto;
+    border-radius: 15px;
+}
+
+.logo-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+.form-link {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.form-link:hover {
+    text-decoration: underline;
+}
+
+.form-floating label i {
+    color: #0d6efd;
+}

@@ -1,0 +1,169 @@
+/* === HMS ADMIN DASHBOARD STYLE === */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f0f2f5 !important;
+  color: #333;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+.wrapper {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* === SIDEBAR === */
+#sidebar {
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 999;
+    background: #ffffff;
+    color: #fff;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+}
+
+#sidebar .sidebar-header a {
+    font-weight: 700;
+    color: #007bff !important;
+    text-decoration: none;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+}
+
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    display: block;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+#sidebar ul li a:hover {
+    color: #007bff;
+    background: #f8f9fa;
+}
+
+#sidebar ul li.active>a,
+a[aria-expanded="true"] {
+    color: #007bff;
+    background: #eef5ff;
+    font-weight: 600;
+}
+/* === CONTENT === */
+#content {
+  width: calc(100% - 260px);
+  padding: 1.5rem;
+  min-height: 100vh;
+  transition: all 0.3s;
+  margin-left: 260px;
+}
+
+/* === TOP NAVBAR === */
+.top-navbar {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0 30px 0 rgba(82, 63, 105, 0.05);
+}
+
+.top-navbar .navbar-title {
+  font-weight: 600;
+  color: #343a40;
+  font-size: 1.5rem;
+}
+
+/* === TABLE PANEL === */
+.card.content-panel {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 0 30px 0 rgba(82, 63, 105, 0.05);
+  background-color: #ffffff;
+}
+
+.card-header.panel-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #ebedf2;
+  padding: 1rem 1.5rem;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.panel-header h5 {
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: #333;
+}
+
+/* === SEARCH BAR === */
+.header-search {
+  position: relative;
+  width: 300px;
+}
+
+.header-search .form-control {
+  padding-left: 2.5rem;
+  font-size: 0.9rem;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.header-search .bi-search {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  transform: translateY(-50%);
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+/* === TABLE === */
+.table {
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  font-weight: 600;
+  color: #5a6a85;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+/* === BUTTONS === */
+.add-btn,
+.btn-outline-primary {
+  font-weight: 600;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+/* === FOOTER === */
+.footer {
+  font-size: 0.9rem;
+  padding-bottom: 1rem;
+}

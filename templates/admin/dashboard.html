@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | HMS Portal</title>
+    
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../static/css/admin/admin.css">
+    <link rel="stylesheet" href="../../static/css/style.css">
+    
+    <!-- === EMBEDDED ADMIN STYLESHEET === -->
+
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header d-flex align-items-center">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                    <!-- Note: Update image path as needed -->
+                    <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+                </a>
+            </div>
+
+            <ul class="list-unstyled components">
+                <!-- Note: Add your server-side routing links (e.g., url_for()) -->
+                <li class="active">
+                    <a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                </li>
+                <li>
+                    <a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a>
+                </li>
+                <li>
+                    <a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a>
+                </li>
+                <li>
+                    <a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
+                <div class="container-fluid">
+                    <!-- Title -->
+                    <h4 class="navbar-title mb-0">Welcome, Admin</h4> <!-- Example: {{ user.full_name }} -->
+                    
+                    <div class="d-flex align-items-center ms-auto">
+                        <!-- Search Form -->
+                        <form class="d-flex me-3 header-search-form" onsubmit="return false;">
+                            <!-- ID added for JavaScript search functionality -->
+                            <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search" id="globalSearchInput">
+                            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
+                        </form>
+                        <!-- User Dropdown -->
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle me-1 fs-4"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li> 
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="main-content">
+
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card stat-card text-white bg-info">
+                            <div class="card-body">
+                                <div class="icon"><i class="bi bi-person-badge-fill"></i></div>
+                                <div>
+                                    <h5 class="card-title">Total Doctors</h5>
+                                    <p class="card-text fs-4 fw-bold">{{total_doctors}} </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card text-white bg-primary">
+                            <div class="card-body">
+                                <div class="icon"><i class="bi bi-people-fill"></i></div>
+                                <div>
+                                    <h5 class="card-title">Total Patients</h5>
+                                    <p class="card-text fs-4 fw-bold">{{total_patients}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card text-white bg-success">
+                            <div class="card-body">
+                                <div class="icon"><i class="bi bi-calendar-check-fill"></i></div>
+                                <div>
+                                    <h5 class="card-title">Appointments</h5>
+                                    <p class="card-text fs-4 fw-bold">{{total_appointments}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registered Doctors -->
+                <div class="card content-panel mb-4" id="doctors-card">
+                    <div class="card-header panel-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Registered Doctors</h5>
+                        <!-- Example: onclick="location.href='{{ url_for('add_doctor') }}'" -->
+                        <button class="btn btn-sm btn-primary add-btn"  onclick="window.location.href='{{url_for('add_doctor')}}'"><i class="bi bi-plus-circle me-1"></i>Add Doctor</button> 
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Sr No.</th>
+                                        <th>Doctor Name</th>
+                                        <th>Department</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  {% for doctor in doctors %}
+                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ doctor.user.full_name }}</td>
+                                        <td>{{ doctor.department.name }}</td>
+                                        <td class="text-center actions-cell">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('view_doctor', doctor_id=doctor.id) }}'">View Profile <i class="bi bi-arrow-right-short"></i></button>
+                                        </td>
+                                    </tr>
+                                  {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="doctors-card">See All</a>
+                    </div>
+                </div>
+                
+                <!-- Registered Patients -->
+                <div class="card content-panel mb-4" id="patients-card">
+                    <div class="card-header panel-header">
+                        <h5 class="card-title mb-0">Registered Patients</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Sr No.</th>
+                                        <th>Patient Name</th>
+                                        <th>Gender</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  {% for patient in patients %}
+                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ patient.user.full_name }}</td>
+                                        <td>{{ patient.gender }}</td>
+                                        <td class="text-center actions-cell">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('view_patient', patient_id=patient.id) }}'">View Details <i class="bi bi-arrow-right-short"></i></button>
+                                        </td>
+                                    </tr>
+                                  {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="patients-card">See All</a>
+                    </div>
+                </div>
+
+                <!-- Upcoming Appointments -->
+                <div class="card content-panel" id="appointments-card">
+                    <div class="card-header panel-header">
+                        <h5 class="card-title mb-0">Upcoming Appointments</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Sr No.</th>
+                                        <th>Patient Name</th>
+                                        <th>Doctor Name</th>
+                                        <th>Department</th>
+                                        <th class="text-center">Patient History</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% set i = 1 %}
+                                  {% for appointment in appointments %}
+                                    {% if appointment.status == "booked" %}
+                                      <tr class="{% if i > 3 %}table-row-hidden{% endif %}">
+                                          <td>{{ i }}</td>
+                                          <td>{{ appointment.patient.user.full_name }}</td>
+                                          <td>{{ appointment.doctor.user.full_name }}</td>
+                                          <td>{{ appointment.doctor.specialization }}</td>
+                                          <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-success">View</button></td>
+                                      </tr>
+                                      {% set i = i + 1 %}
+                                    {% endif %}
+                                  {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                     <div class="card-footer text-center">
+                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="appointments-card">See All</a>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer mt-4 text-center text-muted">
+                © 2025 Hospital Management System | Admin Dashboard
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../static/js/dyanamic.js"></script>
+    
+    <!-- === UPDATED JAVASCRIPT === -->
+    <script>
+        // --- Search Bar Functionality ---
+        const searchInput = document.getElementById('globalSearchInput');
+        const searchForm = document.querySelector('.header-search-form');
+        const allTableBodies = document.querySelectorAll('.content-panel tbody');
+
+        function filterTables() {
+            const filter = searchInput.value.toLowerCase();
+            allTableBodies.forEach(tbody => {
+                const rows = tbody.getElementsByTagName('tr');
+                for (const row of rows) {
+                    const rowText = row.textContent || row.innerText;
+                    if (rowText.toLowerCase().indexOf(filter) > -1) {
+                        row.classList.remove('search-hidden');
+                    } else {
+                        row.classList.add('search-hidden');
+                    }
+                }
+            });
+        }
+
+        searchInput.addEventListener('keyup', filterTables);
+        searchForm.addEventListener('submit', e => e.preventDefault());
+
+        // --- "See All" / "See Less" Toggle Functionality ---
+        
+
+        
+    </script>
+
+</body>
+</html>
+

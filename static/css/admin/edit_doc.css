@@ -1,0 +1,80 @@
+/* === ADMIN PORTAL - EDIT DOCTOR PAGE === */
+
+
+
+a {
+  text-decoration: none;
+}
+
+/* 5. Edit Doctor Form Card */
+.card {
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+#edit-doctor-form .form-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+#edit-doctor-form .form-control {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+#edit-doctor-form .form-control:focus {
+  background: #fff;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* 6. Buttons */
+.btn-submit {
+  font-weight: 600;
+  padding: 0.65rem 1.5rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(13, 110, 253, 0.25);
+}
+
+.btn-cancel {
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background-color: #f8f9fa;
+}
+
+
+
+/* 8. Responsive */
+@media (max-width: 991px) {
+  #sidebar {
+    width: 200px;
+  }
+  #content {
+    margin-left: 200px;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  #sidebar {
+    position: relative;
+    height: auto;
+    width: 100%;
+    box-shadow: none;
+  }
+  #content {
+    margin-left: 0;
+  }
+}

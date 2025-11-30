@@ -1,0 +1,72 @@
+
+    body{font-family:'Inter';background:#f8f9fa;}
+
+    .wrapper{display:flex;width:100%;min-height:100vh;}
+    
+    #sidebar {
+        width: 250px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 999;
+        background: #ffffff;
+        transition: all 0.3s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    #sidebar .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    #sidebar .sidebar-header a {
+        font-weight: 700;
+        color: #007bff !important;
+        text-decoration: none;
+    }
+    
+    #sidebar ul.components {
+        padding: 20px 0;
+    }
+    
+    #sidebar ul li a {
+        padding: 15px 20px;
+        font-size: 1.1em;
+        display: block;
+        color: #495057;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    #sidebar ul li a:hover {
+        color: #007bff;
+        background: #f8f9fa;
+    }
+    
+    #sidebar ul li.active>a {
+        color: #007bff;
+        background: #eef5ff;
+        font-weight: 600;
+    }
+
+
+    #content{
+        width:calc(100% - 250px);margin-left:250px;padding:20px;
+    }
+
+    .top-navbar{
+        background:#fff;padding:12px 20px;border-radius:10px;
+        box-shadow:0 2px 6px rgba(0,0,0,0.08);
+        margin-bottom:25px;
+    }
+
+    .card{
+        border:none;border-radius:12px;padding:25px;
+        box-shadow:0 5px 14px rgba(0,0,0,0.08);
+    }
+
+    .med-box{
+        background:#fff;border:1px solid #e2e2e2;
+        padding:10px;border-radius:8px;margin-bottom:7px;
+    }

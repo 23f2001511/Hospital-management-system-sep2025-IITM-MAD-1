@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>View Report | HMS Portal</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../static/css/style.css">
+
+<style>
+
+
+    /* Report Card */
+    .report-box{
+        background:#fff;padding:32px;border-radius:14px;
+        box-shadow:0 6px 20px rgba(0,0,0,.09);
+    }
+
+    .profile-img{
+        height:105px;width:105px;border-radius:50%;
+        object-fit:cover;border:3px solid #007bff;
+    }
+
+    .info-row b{width:150px;display:inline-block;margin-bottom:4px;}
+
+    .section-title{
+        font-size:19px;font-weight:600;margin-top:28px;margin-bottom:10px;
+        color:#0056d6;border-left:5px solid #0056d6;padding-left:10px;
+    }
+
+    .med-box{
+        background:#f1f7ff;border:1px solid #d8e7ff;padding:10px;border-radius:6px;
+    }
+
+    /* PRINT VIEW */
+    @media print{
+        #sidebar,.top-navbar,.footer,.no-print{display:none!important;}
+        body{background:white!important;margin:0;}
+        #content{margin:0;width:100%;padding:0;}
+        .report-box{border:1px solid #999;margin:0;border-radius:0;padding:25px;}
+        .section-title{border-left:4px solid #000;color:#000;}
+        .profile-img{border:2px solid #000;}
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+        <nav id="sidebar">
+            <div class="sidebar-header d-flex align-items-center">
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                    <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+                </a>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="active">
+                    <a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('doctor_list') }}">
+                        <i class="bi bi-person-badge-fill me-2"></i>Find a Doctor
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('booked_appointment_list') }}">
+                        <i class="bi bi-calendar-check-fill me-2"></i>My Appointments
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('update_profile') }}">
+                        <i class="bi bi-person-fill-gear me-2"></i>Profile Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+
+    <!-- Content -->
+    <div id="content">
+
+        <nav class="top-navbar d-flex justify-content-between align-items-center no-print">
+            <h5 class="fw-semibold m-0">Welcome, {{current_user.full_name}}</h5>
+            <div>
+                <button class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a href="{{url_for('update_profile')}}" class="dropdown-item">View Profile</a></li>
+                    <li><hr></li>
+                    <li><a href="{{url_for('logout')}}" class="dropdown-item text-danger">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Medical Report -->
+        <div class="report-box">
+
+            <h2 class="text-primary text-center fw-bold mb-4">🧾 MEDICAL REPORT – HMS</h2>
+
+            <div class="d-flex align-items-center gap-4 mb-3">
+                <img src="{{ url_for('static', filename='img/' + (appointment.patient.user.profile_picture or 'default.png')) }}" alt="{{ appointment.patient.user.full_name }}" class="rounded-circle" width="120" height="120" style="border:2px solid #1abc9c;">
+
+                <div>
+                    <h4 class="fw-bold">{{appointment.patient.user.full_name}}</h4>
+                    <div class="text-muted">
+                        HMS Patient ID: <b>#HMS0{{appointment.patient.id}}</b>
+                    </div>
+                    <div><b>Gender:</b> {{appointment.patient.user.gender}}  |  <b>Age:</b> {{appointment.patient.user.age}}</div>
+                </div>
+            </div>
+            <hr>
+
+            <div class="info-row mb-3">
+                <b>Referred by : </b> Dr. {{appointment.doctor.user.full_name}} <br>
+                <b>Department : </b> {{appointment.doctor.specialization}} <br>
+                <b>Visit Date : </b> {{appointment.appointment_datetime.strftime("%d-%b-%Y %I:%M %p")}}
+            </div>
+
+            <div class="section-title">Visit Summary</div>
+
+            {% if appointment.history %}
+                <p><b>Visit Type:</b> <span class="text-primary">{{appointment.history.visit_type}}</span></p>
+                <p><b>Tests Done:</b> <span class="text-primary">{{appointment.history.tests_done}}</span></p>
+                <p><b>Diagnosis:</b> <span class="text-primary">{{appointment.history.diagnosis}}</span></p>
+                <p><b>Prescription Notes:</b> <span class="text-primary">{{appointment.history.prescription_notes}}</span></p>
+
+                <div class="section-title">Medicines Prescribed</div>
+                {% for med in appointment.history.medicines %}
+                    <div class="med-box mb-2"><b>{{med.medicine_name}}</b> — {{med.dosage}}</div>
+                {% else %}
+                    <p>No medicine prescribed.</p>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-warning">No treatment history available.</div>
+            {% endif %}
+
+            <div class="text-center mt-4 no-print">
+                <button class="btn btn-dark me-2" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+                <a href="{{url_for('patient_dashboard')}}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Back</a>
+            </div>
+
+        </div>
+
+        <div class="footer text-center text-muted mt-4 no-print">© 2025 HMS Portal</div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

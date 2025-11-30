@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Department of Oncology | HMS Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f9fa;
+      overflow-x: hidden;
+    }
+
+  
+    .top-navbar h4 {
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* ====== Overview Section ====== */
+    .overview {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .overview h5 {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .overview p {
+      color: #555;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* ====== Doctors List ====== */
+    .doctor-card {
+      background: #fff;
+      border: 1px solid #e9ecef;
+      border-radius: 10px;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .doctor-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .doctor-card strong {
+      font-size: 1.05rem;
+    }
+
+    .doctor-card button {
+      border-radius: 8px;
+    }
+
+    /* ====== Footer ====== */
+    footer {
+      text-align: center;
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="sidebar-header">
+        <a href="#">
+          <img src="../../static/img/mad1.png" alt="Logo">
+          HMS Portal
+        </a>
+      </div>
+
+      <ul class="components">
+        <li><a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+        <li class="active"><a href="{{ url_for('doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
+        <li><a href="{{ url_for('appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
+        <li><a href="{{ url_for('medical_record') }}"><i class="bi bi-file-medical-fill me-2"></i>Medical Records</a></li>
+        <li><a href="{{ url_for('profile_update') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+      </ul>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="content">
+      <!-- Top Navbar -->
+      <div class="top-navbar">
+        <h4>Department of Oncology</h4>
+        <div class="dropdown">
+          <a href="#" class="text-dark dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle fs-4"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('profile_update')}}">Edit Profile</a></li>
+            
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Overview -->
+        <div class="overview">
+          <h5>Overview</h5>
+          <p>
+            {{ department_overview }}
+          </p>
+        </div>
+
+        <!-- Doctors List -->
+        <h5 class="mb-3">Doctors' List</h5>
+        {% for doctor in doctors %}
+        <div class="doctor-card">
+          <strong>{{ doctor.full_name }}</strong>
+          <div>
+            <a href="{{ url_for('check_availability', doctor_id=doctor.id) }}">
+            <button class="btn btn-outline-primary btn-sm">Check Availability</button>
+            </a>
+            <a href="{{ url_for('doctor_profile', doctor_id=doctor.id) }}">
+            <button class="btn btn-outline-success btn-sm ms-2">View Details</button>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+
+        <footer>
+          © 2025 Hospital Management System | Department Page
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../static/js/dyanamic.js"></script>
+</body>
+</html>
