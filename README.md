@@ -46,28 +46,29 @@ This application simplifies healthcare workflow by providing **online appointmen
 
 ## 📁 Folder Structure
 
-MAD 1 WEB APP
+MAD-1-WEB-APP/
 │
 ├── back_app/
-│   ├── models.py  ( Store  all tables of HMS web app )
-│   ├── routes.py    ( Control all pages and button or every activity )
-│   └── all_function.py  (Some important fucntion )
+│   ├── models.py            # Contains all database tables using SQLAlchemy
+│   ├── routes.py            # Handles routing, backend logic & page control
+│   └── all_function.py      # Helper utility functions used across the system
 │
 ├── instance/
-│   └── hospital_management.db   (or config file)    
+│   └── hospital_management.db   # SQLite database / configuration directory
 │
-├── static/    ( Make more attractive of any page and UI design )
-│   ├── css/     
-│   ├── img/
-│   └── js/
+├── static/                       # Frontend assets for UI enhancement
+│   ├── css/                      # Stylesheets
+│   ├── img/                      # Images & icons
+│   └── js/                       # JavaScript files
 │
-├── templates/  (Template folders where pages are persent ) 
-│   ├── admin/
-│   ├── auth/
-│   ├── doctor/
-│   ├── patient/
-│   ├── base.html
-│   └── home.html
+├── templates/                    # HTML pages for each user role
+│   ├── admin/                    # Admin dashboard & control pages
+│   ├── auth/                     # Login, Register, Profile
+│   ├── doctor/                   # Doctor panel pages
+│   ├── patient/                  # Appointment + Report UI
+│   ├── base.html                 # Main layout template
+│   └── home.html                 # Landing page
 │
-├── app.py  (It starts Flask server, and runs the system.)
-└── Readme.md 
+├── app.py                        # Runs Flask server & initializes the application
+└── README.md                     # Project documentation
+
