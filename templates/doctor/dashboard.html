@@ -9,10 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../static/css/style.css">
     <style>
-        
-
-       
-
         .card {
              border: none;
              border-radius: 12px;
@@ -114,9 +110,6 @@
                                 </thead>
 
                                 <tbody id="HMSTable">
-
-                               
-                              
                                 {% for appointment in appointments if appointment.status == 'booked' %}
                                     <tr class="{% if loop.index > 5 %}table-row-hidden{% endif %}">
                                         <td>{{ loop.index }}</td>
@@ -194,9 +187,7 @@
                                                         <div id="medicines-section-modal">
                                                             <div class="d-flex justify-content-between align-items-center mt-4">
                                                                 <h6 class="text-primary mb-0">MEDICINES</h6>
-                                                                <button type="button" class="btn btn-sm btn-outline-primary add-medicine-btn-modal">
-                                                                    <i class="bi bi-plus-circle me-1"></i>Add Medicine
-                                                                </button>
+                                                                
                                                             </div>
                                                             <hr class="mt-2">
                                                             <div class="medicines-list-modal">
@@ -208,9 +199,7 @@
                                                                     <div class="col-md-5">
                                                                         <input type="text" class="form-control" name="dosage" placeholder="Dosage (e.g., 1-0-1)">
                                                                     </div>
-                                                                    <div class="col-md-2">
-                                                                        <button type="button" class="btn btn-sm btn-danger remove-medicine-btn-modal w-100">Remove</button>
-                                                                    </div>
+                                                                   
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -233,9 +222,7 @@
                         </div>
                     </div>
                     <div class="card-footer text-center">
-
                         <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
-
                     </div>
                 </div>
 
@@ -346,7 +333,9 @@
                                                             </div>
                                                             <hr class="mt-2">
 
-                                                            <div class="medicines-list-modal">   
+                                                            <div class="medicines-list-modal"> 
+
+                                                                
                                                                 
                                                                     <!-- At least one empty row if no medicine saved -->
                                                                     <div class="row medicine-row align-items-center mb-2">
@@ -361,7 +350,7 @@
                                                                        
                                                                     </div
                                                                 </div>
-                                                        </div>
+                                                            </div>
                                                     </div>
 
                                                     <div class="modal-footer">

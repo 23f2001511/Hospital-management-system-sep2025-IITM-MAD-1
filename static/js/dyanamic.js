@@ -27,8 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-<<<<<<< HEAD
-// Table Search Filter
 
 document.getElementById("HMSSearchInput").addEventListener("keyup", function () {
     const filter = this.value.toLowerCase();
@@ -94,6 +92,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
-=======
->>>>>>> f0fbd49828a773348e21a82e77974966fe905265

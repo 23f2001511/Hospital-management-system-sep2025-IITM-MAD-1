@@ -61,7 +61,7 @@
             <h4 class="text-primary fw-bold mb-2">Medical Report</h4>
             <span class="text-muted">Appointment ID: <b>#{{ appointment.id }}</b></span>
             <hr>
-            <p><b>Patient HMS_ID:<b><span class="text-muted"> <b>#HMS0{{ appointment.patient.id }}</b></span></p>
+            <p><b>Patient HMS_ID:</b><span class="text-muted"> #HMS0{{ appointment.patient.id }}</span></p>
             <p><b>Patient Name :</b> {{ appointment.patient.user.full_name }}</p>
             <p><b>Sex :</b> {{ appointment.patient.user.gender }}</p>
             <p><b>Department Name:</b> {{ appointment.doctor.specialization }}</p>

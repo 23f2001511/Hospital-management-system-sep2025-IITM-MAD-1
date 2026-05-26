@@ -12,8 +12,8 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../static/css/admin/admin.css">
-    <link rel="stylesheet" href="../../static/css/style.css">
+    <link rel="stylesheet" href="../../static/css/admin/admin.css" />
+    <link rel="stylesheet" href="../../static/css/style.css" />
     
     <!-- === EMBEDDED ADMIN STYLESHEET === -->
 
@@ -49,6 +49,16 @@
 
         <!-- Page Content -->
         <div id="content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} mt-2" style="font-weight:bold;">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
             <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-light top-navbar">
                 <div class="container-fluid">
@@ -118,7 +128,7 @@
                 </div>
 
                 <!-- Registered Doctors -->
-                <div class="card content-panel mb-4" id="doctors-card">
+                <div class="card content-panel mb-4" id="HMSTable">
                     <div class="card-header panel-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Registered Doctors</h5>
                         <!-- Example: onclick="location.href='{{ url_for('add_doctor') }}'" -->
@@ -135,7 +145,7 @@
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody >
                                   {% for doctor in doctors %}
                                     <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
                                         <td>{{ loop.index }}</td>
@@ -151,7 +161,7 @@
                         </div>
                     </div>
                     <div class="card-footer text-center">
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="doctors-card">See All</a>
+                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
                     </div>
                 </div>
                 
@@ -204,8 +214,9 @@
                                         <th>Sr No.</th>
                                         <th>Patient Name</th>
                                         <th>Doctor Name</th>
+                                        <th>Date&Time</th>
                                         <th>Department</th>
-                                        <th class="text-center">Patient History</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -216,8 +227,9 @@
                                           <td>{{ i }}</td>
                                           <td>{{ appointment.patient.user.full_name }}</td>
                                           <td>{{ appointment.doctor.user.full_name }}</td>
+                                          <td>{{ appointment.appointment_datetime.strftime('%Y-%m-%d %H:%M') }}</td>
                                           <td>{{ appointment.doctor.specialization }}</td>
-                                          <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-success">View</button></td>
+                                          <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-success"onclick="location.href='{{ url_for('update_appointment_status', appointment_id=appointment.id , new_status='Cancelled') }}'">Cancel</button></td>
                                       </tr>
                                       {% set i = i + 1 %}
                                     {% endif %}

@@ -1,14 +1,4 @@
-    /* Navbar */
-   .navbar {
-  background-color: #f5f0f0ec !important; /* clean white background */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
 
-.navbar-brand {
-  font-weight: 700;
-  color: #007bff !important; /* hospital blue */
-  font-size: 1.3rem;
-}
 
 /* History Section */
 .history-container {

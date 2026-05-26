@@ -170,7 +170,7 @@
 
                             <tbody>
                                 {% for department in departments  %}
-                                <tr class="{% if loop.index > 5 %}table-row-hidden{% endif %}">
+                                <tr class="{% if loop.index > 6 %}table-row-hidden{% endif %}">
                                     <td><b>{{ loop.index }}</b></td>
                                     <td>{{ department.name }}</td>
                                     <td class="text-center">
@@ -216,7 +216,7 @@
                                 </thead>
                                 <tbody>
                                     {% for appointment in appointments if appointment.status.lower() == 'booked' %}
-                                        <tr class="{% if loop.index > 4 %}table-row-hidden{% endif %}">
+                                        <tr class="{% if loop.index > 7 %}table-row-hidden{% endif %}">
                                             <td>{{ loop.index }}</td>
                                             <td>{{ appointment.doctor.user.full_name }}</td>
                                             <td>{{ appointment.doctor.specialization }}</td>

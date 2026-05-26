@@ -147,7 +147,7 @@
                                 <tbody id="HMSTable">
                                 {% for appointment in appointments if appointment.status != 'booked' %}
                                     <!-- Example Row 1 -->
-                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
+                                    <tr class="{% if loop.index > 4 %}table-row-hidden{% endif %}">
                                         <td>{{ loop.index }}</td>
                                         <td>Dr. {{ appointment.doctor.user.full_name }}</td>
 
@@ -171,17 +171,14 @@
                                                  </button>
                                             {% endif %}
                                         </td>
-                                    </tr>
-                                    
+                                    </tr>                                 
                                 {% endfor %}
                                 </tbody>
                             </table>
 
-                            
                         </div>
                         
-                    </div>
-
+                    </div>     
                     
                 </div>
                 

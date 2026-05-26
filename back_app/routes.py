@@ -63,20 +63,25 @@ def login():
         role = request.form.get('role')
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
+        user_name = user.full_name
         if user and user.role.lower() == role.lower() and check_password_hash(user.password, password):
             login_user(user)
             if user.role.lower() == 'doctor' and user.doctor.is_active:
+                flash('Welcome Doctor !', 'success')
                 return redirect(url_for('doctor_dashboard'))
             elif user.role.lower() == 'patient' and user.patient.is_active:
+                flash('Welcome to HMS!', 'success')
                 return redirect(url_for('patient_dashboard'))
             elif user.role.lower() == 'admin':
+                flash('Welcome Admin !', 'success')
                 return redirect(url_for('admin_dashboard'))
             else:
-                
+                flash('Your account is blocked. Please contact the administrator.', 'danger')
                 return redirect(url_for('login'))
             flash('Logged in successfully!', 'success')
         else:
-            flash('Invalid email or password.', 'danger')
+           
+            flash('Invalid email or password according to your selected role.', 'red')
             return redirect(url_for('login'))
     return render_template("auth/login.html")
 
@@ -88,6 +93,30 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('home'))
 
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        new_password = request.form.get('pass')
+        confirm_password = request.form.get('c_pass')
+
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            flash("❌ Email not found!", "danger")
+            return redirect(url_for('forgot_password'))
+
+        if new_password != confirm_password:
+            flash("⚠ New & Confirm password do not match!", "warning")
+            return redirect(url_for('forgot_password'))
+
+        hashed_new_password = generate_password_hash(new_password)
+        user.password = hashed_new_password
+        db.session.commit()
+
+        flash("✅ Password reset successfully! Please log in.", "success")
+        return redirect(url_for('login'))
+    return render_template("auth/forgot_pass.html")
 
 @app.route('/change_password', methods=['GET', 'POST'])
 @login_required
@@ -122,7 +151,7 @@ def change_password():
 @login_required
 def update_appointment_status(appointment_id, new_status):
 
-    valid_status = ["Scheduled", "Completed", "Cancelled", "Booked"]
+    valid_status = ["Completed", "Cancelled", "Booked"]
 
     if new_status not in valid_status:
         flash("Invalid status!", "danger")
@@ -466,8 +495,8 @@ def edit_patient(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     if request.method == 'POST':
         patient.user.full_name = request.form.get('full_name')
-        patient.user.age = request.form.get('age')
         patient.user.phone_number = request.form.get('phone_number')
+        patient.user.age = request.form.get('age')
         db.session.commit()
         flash('Patient details updated successfully!', 'success')
         return redirect(url_for('all_patients'))
