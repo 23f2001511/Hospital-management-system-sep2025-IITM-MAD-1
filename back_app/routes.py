@@ -5,10 +5,16 @@ from werkzeug.utils import secure_filename
 from datetime import time , datetime
 from .models import *
 from .all_funtion import save_picture  , create_admin_user 
-from flask import current_app as app
+from flask import Blueprint
+
+
+
+main = Blueprint('main', __name__)
+
+
 # =================================================================
 
-@app.route('/')
+@main.routes('/')
 def home():
     return render_template('home.html')
 
@@ -16,7 +22,7 @@ def home():
 # =========================Authentication Routes==================
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@main.routes('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         full_name = request.form.get('full_name')
@@ -56,7 +62,7 @@ def register():
     return render_template("auth/register.html")
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@main.routes('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -86,7 +92,7 @@ def login():
     return render_template("auth/login.html")
 
 
-@app.route('/logout')
+@main.routes('/logout')
 @login_required
 def logout():
     logout_user()
@@ -94,7 +100,7 @@ def logout():
     return redirect(url_for('home'))
 
 
-@app.route('/forgot_password', methods=['GET', 'POST'])
+@main.routes('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -118,7 +124,7 @@ def forgot_password():
         return redirect(url_for('login'))
     return render_template("auth/forgot_pass.html")
 
-@app.route('/change_password', methods=['GET', 'POST'])
+@main.routes('/change_password', methods=['GET', 'POST'])
 @login_required
 def change_password():
 
@@ -147,7 +153,7 @@ def change_password():
     return render_template("auth/profile_setting.html")
 
 
-@app.route("/appointment/update_status/<int:appointment_id>/<string:new_status>")
+@main.routes("/appointment/update_status/<int:appointment_id>/<string:new_status>")
 @login_required
 def update_appointment_status(appointment_id, new_status):
 
@@ -166,7 +172,7 @@ def update_appointment_status(appointment_id, new_status):
 
 
 
-@app.route('/update_profile' , methods=['POST','GET'])
+@main.routes('/update_profile' , methods=['POST','GET'])
 @login_required
 def update_profile():
     if request.method == 'POST':
@@ -218,7 +224,7 @@ def update_profile():
 
 # =============== Dashboard Routes ===============
 
-@app.route('/doctor/dashboard')
+@main.routes('/doctor/dashboard')
 @login_required
 def doctor_dashboard():
     if current_user.role.lower() != 'doctor' or not current_user.doctor.is_active:
@@ -231,7 +237,7 @@ def doctor_dashboard():
     return render_template('doctor/dashboard.html' , user=current_user, appointments=appointments , t_upcomming_appt = t_upcomming_appt , t_done_appt = t_done_appt)
 
 
-@app.route('/patient/dashboard')
+@main.routes('/patient/dashboard')
 @login_required
 def patient_dashboard():
     if current_user.role.lower() != 'patient' or not current_user.patient.is_active:
@@ -251,7 +257,7 @@ def patient_dashboard():
 
 
 
-@app.route('/admin/dashboard')
+@main.routes('/admin/dashboard')
 @login_required
 def admin_dashboard():
     if current_user.role.lower() != 'admin':
@@ -272,7 +278,7 @@ def admin_dashboard():
 #========================= admin controller routes =========================
 
 
-@app.route('/admin/doctors',methods=['GET'])
+@main.routes('/admin/doctors',methods=['GET'])
 @login_required
 def all_doctors():
     if current_user.role.lower() != 'admin':
@@ -282,7 +288,7 @@ def all_doctors():
     return render_template('/admin/all_doctors.html' , doctors = all_doctor)
 
 
-@app.route('/admin/patients',methods=['GET'])
+@main.routes('/admin/patients',methods=['GET'])
 @login_required
 def all_patients():
     if current_user.role.lower() != 'admin':
@@ -291,7 +297,7 @@ def all_patients():
     all_patient = Patient.query.all()
     return render_template('/admin/all_patients.html' , patients = all_patient)
 
-@app.route('/admin/appointments',methods=['GET'])
+@main.routes('/admin/appointments',methods=['GET'])
 @login_required
 def all_appointments():
     if current_user.role.lower() != 'admin':
@@ -301,7 +307,7 @@ def all_appointments():
     return render_template('/admin/all_appointment.html' , appointments = all_appointment)
 
 
-@app.route('/admin/add_doctor', methods=['GET', 'POST'])
+@main.routes('/admin/add_doctor', methods=['GET', 'POST'])
 @login_required
 # @admin_required
 def add_doctor():
@@ -358,7 +364,7 @@ def add_doctor():
 
 #
 
-@app.route('/admin/doctor/<int:doctor_id>', methods=['GET'])
+@main.routes('/admin/doctor/<int:doctor_id>', methods=['GET'])
 @login_required
 def view_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
@@ -367,7 +373,7 @@ def view_doctor(doctor_id):
     doctor = Doctor.query.get_or_404(doctor_id)
     return render_template('admin/doctor_profile.html', doctor=doctor)
 
-@app.route('/admin/delete_doctor/<int:doctor_id>', methods=['GET', 'POST'])
+@main.routes('/admin/delete_doctor/<int:doctor_id>', methods=['GET', 'POST'])
 @login_required
 def delete_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
@@ -389,7 +395,7 @@ def delete_doctor(doctor_id):
     flash('Doctor record deleted successfully!', 'success')
     return redirect(url_for('all_doctors'))
 
-@app.route('/admin/block_doctor/<int:doctor_id>', methods=['POST','GET'])
+@main.routes('/admin/block_doctor/<int:doctor_id>', methods=['POST','GET'])
 @login_required
 def block_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
@@ -401,7 +407,7 @@ def block_doctor(doctor_id):
     db.session.commit()
     return redirect(url_for('view_doctor', doctor_id=doctor.id))
 
-@app.route('/admin/unblock_doctor/<int:doctor_id>', methods=['POST','GET'])
+@main.routes('/admin/unblock_doctor/<int:doctor_id>', methods=['POST','GET'])
 @login_required
 def unblock_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
@@ -414,7 +420,7 @@ def unblock_doctor(doctor_id):
     
     return redirect(url_for('view_doctor', doctor_id=doctor.id))
 
-@app.route('/admin/edit_doctor/<int:doctor_id>', methods=['GET', 'POST'])
+@main.routes('/admin/edit_doctor/<int:doctor_id>', methods=['GET', 'POST'])
 @login_required
 def edit_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
@@ -433,7 +439,7 @@ def edit_doctor(doctor_id):
 
 
 
-@app.route('/admin/patient/<int:patient_id>', methods=['GET'])
+@main.routes('/admin/patient/<int:patient_id>', methods=['GET'])
 @login_required
 def view_patient(patient_id):
     if current_user.role.lower() != 'admin':
@@ -442,7 +448,7 @@ def view_patient(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     return render_template('admin/patient_profile.html', patient=patient)
 
-@app.route('/admin/delete_patient/<int:patient_id>', methods=['POST','GET'])
+@main.routes('/admin/delete_patient/<int:patient_id>', methods=['POST','GET'])
 @login_required
 def delete_patient(patient_id):
     if current_user.role.lower() != 'admin':
@@ -460,7 +466,7 @@ def delete_patient(patient_id):
     return redirect(url_for('all_patients'))
 
 
-@app.route('/admin/block_patient/<int:patient_id>', methods=['POST','GET'])
+@main.routes('/admin/block_patient/<int:patient_id>', methods=['POST','GET'])
 @login_required
 def block_patient(patient_id):
     if current_user.role.lower() != 'admin':
@@ -473,7 +479,7 @@ def block_patient(patient_id):
     
     return redirect(url_for('view_patient' , patient_id=patient.id))
 
-@app.route('/admin/unblock_patient/<int:patient_id>', methods=['POST','GET'])
+@main.routes('/admin/unblock_patient/<int:patient_id>', methods=['POST','GET'])
 @login_required
 def unblock_patient(patient_id):
     if current_user.role.lower() != 'admin':
@@ -486,7 +492,7 @@ def unblock_patient(patient_id):
     
     return redirect(url_for('view_patient' , patient_id=patient.id))
 
-@app.route('/admin/edit_patient/<int:patient_id>', methods=['GET', 'POST'])
+@main.routes('/admin/edit_patient/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
 def edit_patient(patient_id):
     if current_user.role.lower() != 'admin':
@@ -503,7 +509,7 @@ def edit_patient(patient_id):
     return render_template('admin/edit_patient.html', patient=patient)
 
 
-@app.route('/admin/patient/view_report/<int:appointment_id>')
+@main.routes('/admin/patient/view_report/<int:appointment_id>')
 @login_required
 def admin_view_report(appointment_id):
     if current_user.role.lower() != 'admin':
@@ -520,7 +526,7 @@ def admin_view_report(appointment_id):
 
 
 
-@app.route('/doctor/provide/weekly_availability' , methods=['POST' , 'GET'])
+@main.routes('/doctor/provide/weekly_availability' , methods=['POST' , 'GET'])
 @login_required
 def set_availability():
     
@@ -612,7 +618,7 @@ def set_availability():
 
 
 
-@app.route('/doctor/appoitment',methods=['GET','POST'])
+@main.routes('/doctor/appoitment',methods=['GET','POST'])
 @login_required
 def manage_appointment():
     if current_user.role.lower() != 'doctor':
@@ -633,7 +639,7 @@ def manage_appointment():
 
 
 
-@app.route("/doctor/history/save/<int:appointment_id>", methods=["POST"])
+@main.routes("/doctor/history/save/<int:appointment_id>", methods=["POST"])
 @login_required
 def save_patient_history(appointment_id):
 
@@ -673,7 +679,7 @@ def save_patient_history(appointment_id):
 
 # VIEW REPORT ROUTE
 # ==========================
-@app.route('/doctor/view_report/<int:appointment_id>')
+@main.routes('/doctor/view_report/<int:appointment_id>')
 @login_required
 def view_patient_report(appointment_id):
     if current_user.role.lower() != 'doctor':
@@ -689,7 +695,7 @@ def view_patient_report(appointment_id):
 
     return render_template("doctor/patient_report.html", appointment=appointment)
 
-@app.route('/doctor/assigned_patients' , methods=['GET'])
+@main.routes('/doctor/assigned_patients' , methods=['GET'])
 @login_required
 def assigned_patients():
     if current_user.role.lower() != 'doctor':
@@ -705,7 +711,7 @@ def assigned_patients():
 
 
 
-@app.route('/check_availability/<int:doctor_id>' , methods=['GET'])
+@main.routes('/check_availability/<int:doctor_id>' , methods=['GET'])
 @login_required
 def check_availability(doctor_id):
     doctor = Doctor.query.get_or_404(doctor_id)
@@ -716,14 +722,14 @@ def check_availability(doctor_id):
 
 #=====view Doctor Profile and all doctors =======
 
-@app.route('/doctor_profile/<int:doctor_id>' , methods=['GET'])
+@main.routes('/doctor_profile/<int:doctor_id>' , methods=['GET'])
 @login_required
 def doctor_profile(doctor_id):
     doctor = Doctor.query.get_or_404(doctor_id)
     return render_template('patient/doctor_profile.html', doctor=doctor)
 
 
-@app.route('/doctor_list' , methods=['GET'])
+@main.routes('/doctor_list' , methods=['GET'])
 @login_required
 def doctor_list():
     if current_user.role.lower() != 'patient':
@@ -743,7 +749,7 @@ def format_time(t):
     return None
 
 
-@app.route('/doctor_availability/for_patient/<int:doctor_id>', methods=['GET'])
+@main.routes('/doctor_availability/for_patient/<int:doctor_id>', methods=['GET'])
 @login_required
 def doctor_availability(doctor_id):
    
@@ -782,7 +788,7 @@ def doctor_availability(doctor_id):
     return render_template('auth/doct_availability.html', doctor=doctor, schedule=schedule_data, week_days=week_days)
 
 
-@app.route('/book_appointment_slot', methods=['POST'])
+@main.routes('/book_appointment_slot', methods=['POST'])
 @login_required
 def book_appointment_slot():
     if current_user.role.lower() != 'patient':
@@ -836,7 +842,7 @@ def book_appointment_slot():
 
 
 
-@app.route('/get_doctor_profile/<int:doctor_id>', methods=['GET'])
+@main.routes('/get_doctor_profile/<int:doctor_id>', methods=['GET'])
 @login_required
 def get_doctor_profile(doctor_id):
     if current_user.role.lower()!= 'patient':
@@ -853,7 +859,7 @@ def get_doctor_profile(doctor_id):
 
 
 
-@app.route('/start/book_appointment/<int:department_id>')
+@main.routes('/start/book_appointment/<int:department_id>')
 def view_department(department_id):
     if current_user.role.lower() != 'patient':
         flash('Access denied.', 'danger')
@@ -863,7 +869,7 @@ def view_department(department_id):
     return render_template('patient/departments.html', department=department , doctors=doctors)
     
 
-@app.route('/appointment_list' , methods=['GET'])
+@main.routes('/appointment_list' , methods=['GET'])
 @login_required
 def booked_appointment_list():
     if current_user.role.lower() != 'patient':
@@ -873,7 +879,7 @@ def booked_appointment_list():
     appointments = Appointment.query.filter_by(patient_id=patient.id).all()
     return render_template('patient/booked_appointment.html', appointments=appointments)
 
-@app.route('/get_report/<int:appointment_id>' , methods=['GET'])
+@main.routes('/get_report/<int:appointment_id>' , methods=['GET'])
 @login_required
 def view_report(appointment_id):
     appointment = Appointment.query.get_or_404(appointment_id)
