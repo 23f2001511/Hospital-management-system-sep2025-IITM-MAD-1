@@ -35,13 +35,14 @@ def create_app():
     db.init_app(app)
     
     with app.app_context():
+        from back_app.routes import *
         db.create_all()
     
     return app
 
 
 app = create_app()
-from back_app.routes import *
+
 
 if __name__ == '__main__':
     app.run(debug=False)  # False for production
