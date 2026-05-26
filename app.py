@@ -26,7 +26,7 @@ def create_app():
 
     with app.app_context():
         from back_app.routes import main
-        app.register_blueprint(main)  # ← Blueprint register
+        app.register_blueprint(main)  
         db.create_all()
 
     return app
