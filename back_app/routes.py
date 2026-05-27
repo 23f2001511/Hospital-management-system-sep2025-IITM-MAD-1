@@ -36,7 +36,7 @@ def register():
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Email already registered. Please log in.', 'warning')
-            return redirect(url_for('login'))
+            return redirect(url_for('main.login'))
 
         new_user = User(
             full_name=full_name,
@@ -58,7 +58,7 @@ def register():
         db.session.add(add_patient)
         db.session.commit()
         flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('main.login'))
     return render_template("auth/register.html")
 
 
@@ -74,21 +74,21 @@ def login():
             login_user(user)
             if user.role.lower() == 'doctor' and user.doctor.is_active:
                 flash('Welcome Doctor !', 'success')
-                return redirect(url_for('doctor_dashboard'))
+                return redirect(url_for('main.doctor_dashboard'))
             elif user.role.lower() == 'patient' and user.patient.is_active:
                 flash('Welcome to HMS!', 'success')
-                return redirect(url_for('patient_dashboard'))
+                return redirect(url_for('main.patient_dashboard'))
             elif user.role.lower() == 'admin':
                 flash('Welcome Admin !', 'success')
-                return redirect(url_for('admin_dashboard'))
+                return redirect(url_for('main.admin_dashboard'))
             else:
                 flash('Your account is blocked. Please contact the administrator.', 'danger')
-                return redirect(url_for('login'))
+                return redirect(url_for('main.login'))
             flash('Logged in successfully!', 'success')
         else:
            
             flash('Invalid email or password according to your selected role.', 'red')
-            return redirect(url_for('login'))
+            return redirect(url_for('main.login'))
     return render_template("auth/login.html")
 
 
@@ -97,7 +97,7 @@ def login():
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('home'))
+    return redirect(url_for('main.home'))
 
 
 @main.route('/forgot_password', methods=['GET', 'POST'])
@@ -110,18 +110,18 @@ def forgot_password():
         user = User.query.filter_by(email=email).first()
         if not user:
             flash("❌ Email not found!", "danger")
-            return redirect(url_for('forgot_password'))
+            return redirect(url_for('main.forgot_password'))
 
         if new_password != confirm_password:
             flash("⚠ New & Confirm password do not match!", "warning")
-            return redirect(url_for('forgot_password'))
+            return redirect(url_for('main.forgot_password'))
 
         hashed_new_password = generate_password_hash(new_password)
         user.password = hashed_new_password
         db.session.commit()
 
         flash("✅ Password reset successfully! Please log in.", "success")
-        return redirect(url_for('login'))
+        return redirect(url_for('main.login'))
     return render_template("auth/forgot_pass.html")
 
 @main.route('/change_password', methods=['GET', 'POST'])
@@ -136,12 +136,12 @@ def change_password():
         # 1️ Old password verify
         if not check_password_hash(current_user.password, old_pass):
             flash("❌ Old password is incorrect!", "danger")
-            return redirect(url_for('change_password'))
+            return redirect(url_for('main.change_password'))
 
         # 2️ New password match check
         if new_pass != confirm_pass:
             flash("⚠ New & Confirm password do not match!", "warning")
-            return redirect(url_for('change_password'))
+            return redirect(url_for('main.change_password'))
 
         # 3️ Password update (hashing required)
         hashed_new_password = generate_password_hash(new_pass)
@@ -149,7 +149,7 @@ def change_password():
         db.session.commit()
 
         flash("✅ Password updated successfully!", "success")
-        return redirect(url_for('update_profile'))
+        return redirect(url_for('main.update_profile'))
     return render_template("auth/profile_setting.html")
 
 
@@ -229,7 +229,7 @@ def update_profile():
 def doctor_dashboard():
     if current_user.role.lower() != 'doctor' or not current_user.doctor.is_active:
         flash('You are blocked or not Doctor, Access denied', 'danger')
-        return redirect(url_for('login'))
+        return redirect(url_for('main.login'))
     doctor = Doctor.query.get(current_user.doctor.id)
     appointments = Appointment.query.filter_by(doctor_id=doctor.id).order_by(Appointment.appointment_datetime.desc()).all()
     t_upcomming_appt = Appointment.query.filter(Appointment.doctor_id==doctor.id,Appointment.status=='booked').count()
@@ -242,7 +242,7 @@ def doctor_dashboard():
 def patient_dashboard():
     if current_user.role.lower() != 'patient' or not current_user.patient.is_active:
         flash('You are bloked or not Patient ,Access denied.', 'danger')
-        return redirect(url_for('login'))
+        return redirect(url_for('main.login'))
     
    
     departments = Department.query.all()
@@ -262,7 +262,7 @@ def patient_dashboard():
 def admin_dashboard():
     if current_user.role.lower() != 'admin':
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     appointments = Appointment.query.order_by(Appointment.appointment_datetime.desc()).all()
     doctors = Doctor.query.all()
     patients = Patient.query.all()
@@ -283,7 +283,7 @@ def admin_dashboard():
 def all_doctors():
     if current_user.role.lower() != 'admin':
         flash("you are nod admin access denied , DANGER!")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     all_doctor = Doctor.query.all()
     return render_template('/admin/all_doctors.html' , doctors = all_doctor)
 
@@ -293,7 +293,7 @@ def all_doctors():
 def all_patients():
     if current_user.role.lower() != 'admin':
         flash("you are nod admin access denied , DANGER!")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     all_patient = Patient.query.all()
     return render_template('/admin/all_patients.html' , patients = all_patient)
 
@@ -302,7 +302,7 @@ def all_patients():
 def all_appointments():
     if current_user.role.lower() != 'admin':
         flash("you are nod admin access denied , DANGER!")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     all_appointment = Appointment.query.all()
     return render_template('/admin/all_appointment.html' , appointments = all_appointment)
 
@@ -349,7 +349,7 @@ def add_doctor():
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Email already registered. Please use a different email.', 'warning')
-            return redirect(url_for('add_doctor'))
+            return redirect(url_for('main.add_doctor'))
 
 
         db.session.add(new_doctor)
@@ -358,7 +358,7 @@ def add_doctor():
 
 
         flash('Doctor added successfully!', 'success')
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('main.admin_dashboard'))
     return render_template('admin/add_doctor.html')
 
 
@@ -369,7 +369,7 @@ def add_doctor():
 def view_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.get_or_404(doctor_id)
     return render_template('admin/doctor_profile.html', doctor=doctor)
 
@@ -378,7 +378,7 @@ def view_doctor(doctor_id):
 def delete_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.get_or_404(doctor_id)
     new_doctor = Doctor.query.filter_by(specialization=doctor.specialization).first()
     appointments = Appointment.query.filter_by(doctor_id=doctor.id).all()
@@ -393,14 +393,14 @@ def delete_doctor(doctor_id):
     db.session.delete(user)
     db.session.commit()
     flash('Doctor record deleted successfully!', 'success')
-    return redirect(url_for('all_doctors'))
+    return redirect(url_for('main.all_doctors'))
 
 @main.route('/admin/block_doctor/<int:doctor_id>', methods=['POST','GET'])
 @login_required
 def block_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.get_or_404(doctor_id)
     user = User.query.get_or_404(doctor.user_id)
     doctor.is_active = False
@@ -412,7 +412,7 @@ def block_doctor(doctor_id):
 def unblock_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.get_or_404(doctor_id)
     user = User.query.get_or_404(doctor.user_id)
     doctor.is_active = True
@@ -425,7 +425,7 @@ def unblock_doctor(doctor_id):
 def edit_doctor(doctor_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.get_or_404(doctor_id)
     if request.method == 'POST':
         doctor.user.full_name = request.form.get('full_name')
@@ -434,7 +434,7 @@ def edit_doctor(doctor_id):
         doctor.experience_years = request.form.get('experience_years')
         db.session.commit()
         flash('Doctor details updated successfully!', 'success')
-        return redirect(url_for('all_doctors'))
+        return redirect(url_for('main.all_doctors'))
     return render_template('admin/edit_doctor.html', doctor=doctor)
 
 
@@ -444,7 +444,7 @@ def edit_doctor(doctor_id):
 def view_patient(patient_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     patient = Patient.query.get_or_404(patient_id)
     return render_template('admin/patient_profile.html', patient=patient)
 
@@ -453,7 +453,7 @@ def view_patient(patient_id):
 def delete_patient(patient_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     patient = Patient.query.get_or_404(patient_id)
     user = User.query.get_or_404(patient.user_id)
     appointments = Appointment.query.filter_by(patient_id=patient.id).all()
@@ -463,7 +463,7 @@ def delete_patient(patient_id):
     db.session.delete(user)
     db.session.commit()
     
-    return redirect(url_for('all_patients'))
+    return redirect(url_for('main.all_patients'))
 
 
 @main.route('/admin/block_patient/<int:patient_id>', methods=['POST','GET'])
@@ -471,7 +471,7 @@ def delete_patient(patient_id):
 def block_patient(patient_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     patient = Patient.query.get_or_404(patient_id)
     user = User.query.get_or_404(patient.user_id)
     patient.is_active = False
@@ -484,7 +484,7 @@ def block_patient(patient_id):
 def unblock_patient(patient_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     patient = Patient.query.get_or_404(patient_id)
     user = User.query.get_or_404(patient.user_id)
     patient.is_active = True
@@ -497,7 +497,7 @@ def unblock_patient(patient_id):
 def edit_patient(patient_id):
     if current_user.role.lower() != 'admin':
         flash("access denied you are not admin , danger")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     patient = Patient.query.get_or_404(patient_id)
     if request.method == 'POST':
         patient.user.full_name = request.form.get('full_name')
@@ -505,7 +505,7 @@ def edit_patient(patient_id):
         patient.user.age = request.form.get('age')
         db.session.commit()
         flash('Patient details updated successfully!', 'success')
-        return redirect(url_for('all_patients'))
+        return redirect(url_for('main.all_patients'))
     return render_template('admin/edit_patient.html', patient=patient)
 
 
@@ -514,7 +514,7 @@ def edit_patient(patient_id):
 def admin_view_report(appointment_id):
     if current_user.role.lower() != 'admin':
         flash("Accesss denied you are not admin, Danger!")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     appointment = Appointment.query.get_or_404(appointment_id)
     return render_template('admin/patient_report.html' , appointment=appointment)
     
@@ -600,7 +600,7 @@ def set_availability():
             db.session.rollback() 
             flash(f'Error updating availability: {e}', 'danger')
 
-        return redirect(url_for('set_availability'))
+        return redirect(url_for('main.set_availability'))
 
     # GET request ke liye, pehle se maujood availability fetch kiya
     current_availability_db = DoctorAvailability.query.filter_by(doctor_id=doctor_id).all()
@@ -623,7 +623,7 @@ def set_availability():
 def manage_appointment():
     if current_user.role.lower() != 'doctor':
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.filter_by(user_id=current_user.id).first()
     appointments = Appointment.query.filter_by(doctor_id=doctor.id).all()
     patients = Patient.query.filter_by(user_id=current_user.id).all()
@@ -684,14 +684,14 @@ def save_patient_history(appointment_id):
 def view_patient_report(appointment_id):
     if current_user.role.lower() != 'doctor':
         flash("Access denied ,Danger!")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     # Fetch appointment by ID
     appointment = Appointment.query.get_or_404(appointment_id)
 
     # Access restriction: doctor can view only his own appointment reports
     if appointment.doctor_id != current_user.doctor.id:
         flash("Unauthorized Access!", "danger")
-        return redirect(url_for('doctor_dashboard'))
+        return redirect(url_for('main.doctor_dashboard'))
 
     return render_template("doctor/patient_report.html", appointment=appointment)
 
@@ -700,7 +700,7 @@ def view_patient_report(appointment_id):
 def assigned_patients():
     if current_user.role.lower() != 'doctor':
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.get(current_user.doctor.id)
     appointments = Appointment.query.filter_by(doctor_id=doctor.id).all()
     patient_count = len(appointments)
@@ -734,7 +734,7 @@ def doctor_profile(doctor_id):
 def doctor_list():
     if current_user.role.lower() != 'patient':
         flash("access denied , DANGER !")
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctors = Doctor.query.all()
     departments = Department.query.all()
     return render_template('patient/all_doctors.html', doctors=doctors , departments = departments)
@@ -793,7 +793,7 @@ def doctor_availability(doctor_id):
 def book_appointment_slot():
     if current_user.role.lower() != 'patient':
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     
     try:
         doctor_id = request.form.get("doctor_id")
@@ -826,7 +826,7 @@ def book_appointment_slot():
         db.session.commit()
 
         flash("Appointment booked successfully!", "success")
-        return redirect(url_for('booked_appointment_list'))
+        return redirect(url_for('main.booked_appointment_list'))
 
     except Exception as e:
         print(e)
@@ -847,7 +847,7 @@ def book_appointment_slot():
 def get_doctor_profile(doctor_id):
     if current_user.role.lower()!= 'patient':
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     doctor = Doctor.query.get_or_404(doctor_id)
     print(doctor)
     return render_template('patient/doct_profile.html', doctor=doctor)
@@ -863,7 +863,7 @@ def get_doctor_profile(doctor_id):
 def view_department(department_id):
     if current_user.role.lower() != 'patient':
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     department = Department.query.get_or_404(department_id)
     doctors = Doctor.query.filter_by(department_id=department.id).all()
     return render_template('patient/departments.html', department=department , doctors=doctors)
@@ -874,7 +874,7 @@ def view_department(department_id):
 def booked_appointment_list():
     if current_user.role.lower() != 'patient':
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
     patient = Patient.query.filter_by(user_id=current_user.id).first()
     appointments = Appointment.query.filter_by(patient_id=patient.id).all()
     return render_template('patient/booked_appointment.html', appointments=appointments)
@@ -885,7 +885,7 @@ def view_report(appointment_id):
     appointment = Appointment.query.get_or_404(appointment_id)
     if current_user.role.lower() != 'patient' or appointment.patient.user_id != current_user.id:
         flash('Access denied.', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
    
     return render_template('patient/view_report.html', appointment=appointment)
 

@@ -61,23 +61,23 @@
 
             <ul class="list-unstyled components">
                 <li class="active">
-                    <a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                    <a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                 </li>
 
                 <li>
-                    <a href="{{ url_for('doctor_list') }}">
+                    <a href="{{ url_for('main.doctor_list') }}">
                         <i class="bi bi-person-badge-fill me-2"></i>Find a Doctor
                     </a>
                 </li>
 
                 <li>
-                    <a href="{{ url_for('booked_appointment_list') }}">
+                    <a href="{{ url_for('main.booked_appointment_list') }}">
                         <i class="bi bi-calendar-check-fill me-2"></i>My Appointments
                     </a>
                 </li>
 
                 <li>
-                    <a href="{{ url_for('update_profile') }}">
+                    <a href="{{ url_for('main.update_profile') }}">
                         <i class="bi bi-person-fill-gear me-2"></i>Profile Settings
                     </a>
                 </li>
@@ -101,9 +101,9 @@
                                 </a>
 
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="{{ url_for('update_profile') }}">Edit Profile</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('main.update_profile') }}">Edit Profile</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -174,7 +174,7 @@
                                     <td><b>{{ loop.index }}</b></td>
                                     <td>{{ department.name }}</td>
                                     <td class="text-center">
-                                        <a href="{{ url_for('view_department', department_id=department.id) }}" 
+                                        <a href="{{ url_for('main.view_department', department_id=department.id) }}" 
                                         class="btn btn-sm btn-outline-primary">
                                         View Details
                                         </a>
@@ -196,7 +196,7 @@
                 <div class="card mb-4" id="appointments-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Upcoming Appointments</h5>
-                        <a href="{{ url_for('doctor_list')}}" class="btn btn-sm btn-primary">
+                        <a href="{{ url_for('main.doctor_list')}}" class="btn btn-sm btn-primary">
                             <i class="bi bi-plus-circle me-1"></i>New Appointment
                         </a>
                     </div>
@@ -224,7 +224,7 @@
                                             <td>{{ appointment.status|capitalize }}</td>
                                             <td>
                                                 <!-- Cancel -->
-                                            <a href="{{ url_for('update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}"
+                                            <a href="{{ url_for('main.update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}"
                                                class="btn btn-sm btn-danger">
                                                 <i class="bi bi-x-circle"></i> Cancel
                                             </a>

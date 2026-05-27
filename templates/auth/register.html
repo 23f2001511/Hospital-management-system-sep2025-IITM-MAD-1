@@ -25,7 +25,7 @@
 
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link " href="{{url_for('home')}}">Home</a></li>
+          <li class="nav-item"><a class="nav-link " href="{{url_for('main.home')}}">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#">About</a></li>
           <li class="nav-item"><a class="nav-link" href="#">Contact us</a></li>
           
@@ -33,7 +33,7 @@
 
         <div class="d-flex align-items-center">
           <!-- Login  -->
-          <button class="btn btn-outline-primary" onclick="window.location.href='{{ url_for('login') }}'">
+          <button class="btn btn-outline-primary" onclick="window.location.href='{{ url_for('main.login') }}'">
             <i class="bi  me-1"></i>Login
           </button>
         </div>
@@ -51,7 +51,7 @@
         <p class="text-muted">Create your account to access the HMS Portal</p>
       </div>
 
-      <form id="patientRegisterForm" action="{{url_for('register')}}" method="POST">
+      <form id="patientRegisterForm" action="{{url_for('main.register')}}" method="POST">
         <div class="form-floating mb-3">
           <input type="text" class="form-control" id="registerName" name="full_name" placeholder="John Doe" required>
           <label for="registerName" ><i class="bi bi-person-fill me-2"></i>Full Name</label>
@@ -115,7 +115,7 @@
         <button type="submit" class="btn btn-primary w-100 btn-lg">Register as Patient</button>
 
         <div class="text-center mt-3">
-          <p>Already have an account? <a href="{{url_for('login')}}" class="form-link">Login here</a></p>
+          <p>Already have an account? <a href="{{url_for('main.login')}}" class="form-link">Login here</a></p>
         </div>
       </form>
     </div>

@@ -40,10 +40,10 @@
         </div>
 
         <ul class="list-unstyled components">
-            <li><a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-            <li class="active"><a href="{{ url_for('doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
-            <li><a href="{{ url_for('booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
-            <li><a href="{{ url_for('update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+            <li><a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+            <li class="active"><a href="{{ url_for('main.doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
+            <li><a href="{{ url_for('main.booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
+            <li><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
         </ul>
     </nav>
 
@@ -73,9 +73,9 @@
                             <i class="bi bi-person-circle fs-4"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{url_for('update_profile')}}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{url_for('main.update_profile')}}">Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li>
+                            <li><a class="dropdown-item text-danger" href="{{url_for('main.logout')}}">Logout</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -112,7 +112,7 @@
                     </p>
 
                     <div class="mt-4 d-flex gap-3">
-                        <a href="{{ url_for('doctor_availability', doctor_id=doctor.id) }}" class="btn btn-primary">
+                        <a href="{{ url_for('main.doctor_availability', doctor_id=doctor.id) }}" class="btn btn-primary">
                             Check Availability
                         </a>
                         <button class="btn btn-outline-secondary" onclick="window.history.back();">

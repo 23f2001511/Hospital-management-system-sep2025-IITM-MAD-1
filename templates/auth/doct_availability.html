@@ -27,38 +27,38 @@
             <ul class="list-unstyled components">
                 {% if current_user.role.lower() == 'patient' %}
                     <li class="active">
-                        <a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                        <a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                     </li>
 
                     <li>
-                        <a href="{{ url_for('doctor_list') }}">
+                        <a href="{{ url_for('main.doctor_list') }}">
                             <i class="bi bi-person-badge-fill me-2"></i>Find a Doctor
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ url_for('booked_appointment_list') }}">
+                        <a href="{{ url_for('main.booked_appointment_list') }}">
                             <i class="bi bi-calendar-check-fill me-2"></i>My Appointments
                         </a>
                     </li>
 
                     <li>
-                        <a href="{{ url_for('update_profile') }}">
+                        <a href="{{ url_for('main.update_profile') }}">
                             <i class="bi bi-person-fill-gear me-2"></i>Profile Settings
                         </a>
                     </li>
                 {% elif current_user.role.lower() == 'admin' %}
                     <li>
-                        <a href="{{ url_for('admin_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                        <a href="{{ url_for('main.admin_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                     </li>
                     <li class="active">
-                        <a href="{{ url_for('all_doctors') }}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a>
+                        <a href="{{ url_for('main.all_doctors') }}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a>
                     </li>
                     <li>
-                        <a href="{{ url_for('all_patients') }}"><i class="bi bi-people-fill me-2"></i>Patients</a>
+                        <a href="{{ url_for('main.all_patients') }}"><i class="bi bi-people-fill me-2"></i>Patients</a>
                     </li>
                     <li>
-                        <a href="{{ url_for('all_appointments') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
+                        <a href="{{ url_for('main.all_appointments') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
                     </li>
                 {% endif %}
             </ul>
@@ -218,7 +218,7 @@
                     <h5 class="modal-title">Confirm Appointment</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{url_for('book_appointment_slot')}}" method="POST">
+                <form action="{{url_for('main.book_appointment_slot')}}" method="POST">
                     <div class="modal-body">
                         <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
                         <input type="hidden" name="slot_time" id="modalSlotTime">

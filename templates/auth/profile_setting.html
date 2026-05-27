@@ -27,15 +27,15 @@
         <!-- Sidebar Links -->
         <ul class="list-unstyled components">
             {% if current_user.role.lower() == 'patient' %}
-                <li><a href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-                <li><a href="{{ url_for('doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
-                <li><a href="{{ url_for('booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
-                <li class="active"><a href="{{ url_for('update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+                <li><a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li><a href="{{ url_for('main.doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
+                <li><a href="{{ url_for('main.booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
+                <li class="active"><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
             {% elif current_user.role.lower() == 'doctor' %}
-                <li><a href="{{ url_for('doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-                <li><a href="{{ url_for('manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-                <li><a href="{{ url_for('assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
-                <li class="active"><a href="{{ url_for('update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+                <li><a href="{{ url_for('main.doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li><a href="{{ url_for('main.manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+                <li><a href="{{ url_for('main.assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
+                <li class="active"><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
             {% endif %}
         </ul>
     </nav>
@@ -57,7 +57,7 @@
                                      class="me-2" style="background-color: #0a151cff;">
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -102,7 +102,7 @@
                         <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
                             <h5 class="mb-4">Update Your Information</h5>
                             <!-- IMPORTANT: Added enctype for file uploads -->
-                            <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data"> 
+                            <form method="POST" action="{{ url_for('main.update_profile') }}" enctype="multipart/form-data"> 
                                 <div class="row">
                                     <!-- Profile Picture Section -->
                                     <div class="col-md-3 text-center mb-4 mb-md-0">
@@ -188,7 +188,7 @@
                         <!-- Security Tab Pane -->
                         <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
                             <h5 class="mb-3">Change Your Password</h5>
-                             <form method="POST" action="{{ url_for('change_password') }}">
+                             <form method="POST" action="{{ url_for('main.change_password') }}">
                                  <div class="row justify-content-center">
                                      <div class="col-md-8">
                                          <div class="form-floating mb-3">

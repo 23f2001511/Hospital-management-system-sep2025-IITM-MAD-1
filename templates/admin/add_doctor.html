@@ -25,10 +25,10 @@
         </a>
       </div>
       <ul class="list-unstyled components mt-3">
-        <li class="active"><a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-        <li><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
-        <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
-        <li><a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+        <li class="active"><a href="{{url_for('main.admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+        <li><a href="{{url_for('main.all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
+        <li><a href="{{url_for('main.all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
+        <li><a href="{{url_for('main.all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
   
       </ul>
     </nav>
@@ -48,7 +48,7 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end shadow-sm">
             
-            <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li>
+            <li><a class="dropdown-item text-danger" href="{{url_for('main.logout')}}">Logout</a></li>
           </ul>
         </div>
       </nav>

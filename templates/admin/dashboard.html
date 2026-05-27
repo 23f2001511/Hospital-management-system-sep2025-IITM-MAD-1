@@ -33,16 +33,16 @@
             <ul class="list-unstyled components">
                 <!-- Note: Add your server-side routing links (e.g., url_for()) -->
                 <li class="active">
-                    <a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                    <a href="{{url_for('main.admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                 </li>
                 <li>
-                    <a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a>
+                    <a href="{{url_for('main.all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a>
                 </li>
                 <li>
-                    <a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a>
+                    <a href="{{url_for('main.all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a>
                 </li>
                 <li>
-                    <a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
+                    <a href="{{url_for('main.all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
                 </li>
             </ul>
         </nav>
@@ -79,7 +79,7 @@
                                     <i class="bi bi-person-circle me-1 fs-4"></i>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li> 
+                                    <li><a class="dropdown-item text-danger" href="{{url_for('main.logout')}}">Logout</a></li> 
                                 </ul>
                             </li>
                         </ul>
@@ -131,8 +131,8 @@
                 <div class="card content-panel mb-4" id="HMSTable">
                     <div class="card-header panel-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Registered Doctors</h5>
-                        <!-- Example: onclick="location.href='{{ url_for('add_doctor') }}'" -->
-                        <button class="btn btn-sm btn-primary add-btn"  onclick="window.location.href='{{url_for('add_doctor')}}'"><i class="bi bi-plus-circle me-1"></i>Add Doctor</button> 
+                        <!-- Example: onclick="location.href='{{ url_for('main.add_doctor') }}'" -->
+                        <button class="btn btn-sm btn-primary add-btn"  onclick="window.location.href='{{url_for('main.add_doctor')}}'"><i class="bi bi-plus-circle me-1"></i>Add Doctor</button> 
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -152,7 +152,7 @@
                                         <td>{{ doctor.user.full_name }}</td>
                                         <td>{{ doctor.department.name }}</td>
                                         <td class="text-center actions-cell">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('view_doctor', doctor_id=doctor.id) }}'">View Profile <i class="bi bi-arrow-right-short"></i></button>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('main.view_doctor', doctor_id=doctor.id) }}'">View Profile <i class="bi bi-arrow-right-short"></i></button>
                                         </td>
                                     </tr>
                                   {% endfor %}
@@ -188,7 +188,7 @@
                                         <td>{{ patient.user.full_name }}</td>
                                         <td>{{ patient.gender }}</td>
                                         <td class="text-center actions-cell">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('view_patient', patient_id=patient.id) }}'">View Details <i class="bi bi-arrow-right-short"></i></button>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('main.view_patient', patient_id=patient.id) }}'">View Details <i class="bi bi-arrow-right-short"></i></button>
                                         </td>
                                     </tr>
                                   {% endfor %}
@@ -229,7 +229,7 @@
                                           <td>{{ appointment.doctor.user.full_name }}</td>
                                           <td>{{ appointment.appointment_datetime.strftime('%Y-%m-%d %H:%M') }}</td>
                                           <td>{{ appointment.doctor.specialization }}</td>
-                                          <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-success"onclick="location.href='{{ url_for('update_appointment_status', appointment_id=appointment.id , new_status='Cancelled') }}'">Cancel</button></td>
+                                          <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-success"onclick="location.href='{{ url_for('main.update_appointment_status', appointment_id=appointment.id , new_status='Cancelled') }}'">Cancel</button></td>
                                       </tr>
                                       {% set i = i + 1 %}
                                     {% endif %}

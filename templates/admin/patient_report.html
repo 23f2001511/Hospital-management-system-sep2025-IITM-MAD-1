@@ -25,10 +25,10 @@
             </div>
 
             <ul class="list-unstyled components">
-                <li><a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-                <li ><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
-                <li><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
-                <li class="active"><a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+                <li><a href="{{url_for('main.admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li ><a href="{{url_for('main.all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
+                <li><a href="{{url_for('main.all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
+                <li class="active"><a href="{{url_for('main.all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
                
             </ul>
         </nav>
@@ -85,7 +85,7 @@
             {% endif %}
 
             <div class="text-end mt-4">
-                <a href="{{ url_for('all_appointments') }}" class="btn btn-secondary">
+                <a href="{{ url_for('main.all_appointments') }}" class="btn btn-secondary">
                     ← Back
                 </a>
             </div>

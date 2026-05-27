@@ -24,10 +24,10 @@
             </div>
 
             <ul class="list-unstyled components">
-                <li><a href="{{url_for('admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-                <li><a href="{{url_for('all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
-                <li class="active"><a href="{{url_for('all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
-                <li><a href="{{url_for('all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+                <li><a href="{{url_for('main.admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+                <li><a href="{{url_for('main.all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
+                <li class="active"><a href="{{url_for('main.all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
+                <li><a href="{{url_for('main.all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
             </ul>
         </nav>
 
@@ -51,7 +51,7 @@
                                 <i class="bi bi-person-circle fs-3 text-primary"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                <li><a class="dropdown-item text-danger" href="{{url_for('logout')}}">Logout</a></li>
+                                <li><a class="dropdown-item text-danger" href="{{url_for('main.logout')}}">Logout</a></li>
                             </ul>
                         </div>
                     </div>
@@ -77,25 +77,25 @@
                                 <p class="text-muted mb-4">Patient ID: #{{patient.id}}</p>
 
                                 <div class="d-flex flex-column gap-2 px-3 btn-action-group mb-4">
-                                    <a href="{{url_for('edit_patient' , patient_id = patient.id)}}" class="btn btn-primary w-100 shadow-sm">
+                                    <a href="{{url_for('main.edit_patient' , patient_id = patient.id)}}" class="btn btn-primary w-100 shadow-sm">
                                         <i class="bi bi-pencil-square me-2"></i> Edit Profile
                                     </a>
                                     
                                     {% if patient.is_active %}
                                     <button class="btn btn-warning w-100 shadow-sm text-dark fw-semibold"
-                                            onclick="if(confirm('Are you sure you want to BLOCK this Patient?')) location.href='{{url_for('block_patient', patient_id=patient.id)}}'">
+                                            onclick="if(confirm('Are you sure you want to BLOCK this Patient?')) location.href='{{url_for('main.block_patient', patient_id=patient.id)}}'">
                                         <i class="bi bi-slash-circle me-2"></i> Block Patient
                                     </button>
                                     {% else %}
                                     <button class="btn btn-success w-100 shadow-sm text-dark fw-semibold"
-                                            onclick="if(confirm('Are you sure you want to UNBLOCK this Patient?')) location.href='{{url_for('unblock_patient', patient_id=patient.id)}}'">
+                                            onclick="if(confirm('Are you sure you want to UNBLOCK this Patient?')) location.href='{{url_for('main.unblock_patient', patient_id=patient.id)}}'">
                                         <i class="bi bi-check-circle me-2"></i> Unblock Patient
                                     </button>
                                     {% endif %}
 
                                     
                                     <button class="btn btn-outline-danger w-100"
-                                            onclick="if(confirm('⚠ This will permanently delete Patient! Continue?')) location.href='{{url_for('delete_patient', patient_id=patient.id)}}'">
+                                            onclick="if(confirm('⚠ This will permanently delete Patient! Continue?')) location.href='{{url_for('main.delete_patient', patient_id=patient.id)}}'">
                                         <i class="bi bi-trash3 me-2"></i> Delete Patient
                                     </button>
 

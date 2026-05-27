@@ -51,16 +51,16 @@
             <!-- Doctor ke links -->
             <ul class="list-unstyled components">
                 <li >
-                    <a href="{{ url_for('doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
+                    <a href="{{ url_for('main.doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                 </li>
                 <li >
-                    <a href="{{ url_for('manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
+                    <a href="{{ url_for('main.manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
                 </li>
                 <li class="active">
-                    <a href="{{ url_for('assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a>
+                    <a href="{{ url_for('main.assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a>
                 </li>
                  <li>
-                    <a href="{{ url_for('update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a>
+                    <a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a>
                 </li>
             </ul>
         </nav>
@@ -84,9 +84,9 @@
                                     <i class="bi bi-person-circle me-1 fs-4"></i>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="{{url_for('update_profile')}}">Profile</a></li>
+                                    <li><a class="dropdown-item" href="{{url_for('main.update_profile')}}">Profile</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Logout</a></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -154,7 +154,7 @@
                                 <td><span class="badge bg-success">{{appointment.status}}</span></td>
                                 {% if appointment.status.lower() == 'completed' %}
                                     <td>
-                                        <a href="{{ url_for('view_patient_report', appointment_id=appointment.id) }}"
+                                        <a href="{{ url_for('main.view_patient_report', appointment_id=appointment.id) }}"
                                         class="btn btn-sm btn-primary">
                                             <i class="bi bi-eye"></i> View Report
                                         </a>
@@ -167,7 +167,7 @@
                                     </td>
                                 {% else %}
                                     <td>
-                                        <a href="{{ url_for('manage_appointment') }}"
+                                        <a href="{{ url_for('main.manage_appointment') }}"
                                         class="btn btn-sm btn-secondary">
                                             <i class="bi bi-calendar-check-fill"></i> Manage
                                         </a>
