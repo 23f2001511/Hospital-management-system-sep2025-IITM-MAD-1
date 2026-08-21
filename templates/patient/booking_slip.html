@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}Booking Confirmed | HMS Portal{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.patient_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.booked_appointment_list') }}">My Appointments</a></li>
+        <li class="breadcrumb-item active">Booking Confirmation</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="text-center mb-4 slip-hero reveal">
+    <div class="slip-check"><i class="bi bi-check-lg"></i></div>
+    <h4 class="fw-bold mt-3 mb-1">Appointment Booked!</h4>
+    <p class="text-muted mb-0">Your booking has been confirmed. Here's your slip.</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6 reveal">
+        <div class="booking-slip">
+            <!-- Slip top -->
+            <div class="slip-top">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="slip-brand"><i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal</div>
+                        <div class="slip-subtitle">Appointment Confirmation Slip</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="slip-ref">#{{ appointment.id }}</div>
+                        <div class="slip-status">
+                            <span class="badge badge-success"><i class="bi bi-patch-check"></i> Confirmed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Perforation -->
+            <div class="slip-perf"></div>
+
+            <!-- Slip body -->
+            <div class="slip-body">
+                <div class="slip-doctor">
+                    <img src="{{ url_for('static', filename='img/' + (appointment.doctor.user.profile_picture or 'default.png')) }}"
+                         class="slip-doctor-img" alt="Doctor">
+                    <div>
+                        <div class="slip-label">Doctor</div>
+                        <div class="slip-value">Dr. {{ appointment.doctor.user.full_name }}</div>
+                        <div class="slip-dept">{{ appointment.doctor.specialization }}</div>
+                    </div>
+                </div>
+
+                <hr class="slip-rule">
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="slip-label">Date</div>
+                        <div class="slip-value">{{ appointment.appointment_datetime.strftime('%A, %b %d, %Y') if appointment.appointment_datetime else '—' }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="slip-label">Time</div>
+                        <div class="slip-value">{{ appointment.appointment_datetime.strftime('%I:%M %p') if appointment.appointment_datetime else '—' }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="slip-label">Patient</div>
+                        <div class="slip-value">{{ appointment.patient.user.full_name }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="slip-label">Reference No.</div>
+                        <div class="slip-value slip-ref-bold">HMS-{{ '%05d' % appointment.id }}</div>
+                    </div>
+                </div>
+
+                {% if appointment.reassigned_from_doctor_id %}
+                <div class="slip-updated mt-3">
+                    <i class="bi bi-arrow-repeat me-1"></i> Updated — originally booked with another doctor
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Perforation -->
+            <div class="slip-perf"></div>
+
+            <!-- Slip footer -->
+            <div class="slip-footer">
+                <p class="mb-1"><i class="bi bi-alarm me-1"></i> Please arrive <b>10 minutes</b> before your appointment time.</p>
+                <p class="mb-0"><i class="bi bi-file-earmark-text me-1"></i> Carry this slip or your booking reference number on arrival.</p>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 mt-4 flex-wrap">
+            <a href="{{ url_for('main.booking_slip_pdf', appointment_id=appointment.id) }}" class="btn btn-primary">
+                <i class="bi bi-download"></i> Download Slip (PDF)
+            </a>
+            <a href="{{ url_for('main.booked_appointment_list') }}" class="btn btn-outline">My Appointments</a>
+            <a href="{{ url_for('main.patient_dashboard') }}" class="btn btn-outline">Go to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block head_extra %}
+<style>
+    .slip-hero { animation: slipIn 0.6s var(--ease-out) both; }
+    @keyframes slipIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .slip-check {
+        width: 64px; height: 64px; margin: 0 auto;
+        background: linear-gradient(135deg, var(--success), var(--accent));
+        border-radius: 50%; color: #fff; font-size: 2rem;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 10px 30px rgba(16,185,129,0.35);
+    }
+    .booking-slip {
+        background: var(--surface); border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-xl); overflow: hidden;
+        animation: slipIn 0.6s 0.15s var(--ease-out) both;
+    }
+    .slip-top {
+        background: linear-gradient(120deg, var(--primary), var(--accent-600));
+        color: #fff; padding: var(--space-6);
+    }
+    .slip-brand { font-family: var(--font-heading); font-weight: 800; font-size: 1.15rem; }
+    .slip-subtitle { opacity: 0.85; font-size: var(--text-sm); }
+    .slip-ref { font-family: var(--font-heading); font-weight: 800; font-size: 1rem; }
+    .slip-ref-bold { font-family: var(--font-heading); font-weight: 800; color: var(--primary); }
+    .slip-perf {
+        height: 22px; position: relative;
+        background:
+            radial-gradient(circle at 0 50%, var(--bg) 0 12px, transparent 13px),
+            radial-gradient(circle at 100% 50%, var(--bg) 0 12px, transparent 13px);
+        background-size: 26px 26px; background-position: 0 0, 26px 0;
+        background-repeat: repeat-x;
+        border-top: 2px dashed var(--border-strong);
+        border-bottom: 2px dashed var(--border-strong);
+    }
+    .slip-body { padding: var(--space-6); }
+    .slip-doctor { display: flex; align-items: center; gap: var(--space-4); }
+    .slip-doctor-img {
+        width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+        border: 3px solid var(--primary); flex-shrink: 0;
+    }
+    .slip-label { font-size: var(--text-xs); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .slip-value { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .slip-dept { font-size: var(--text-sm); color: var(--primary-600); font-weight: 600; }
+    .slip-rule { border-top: 1px dashed var(--border-strong); margin: var(--space-5) 0; }
+    .slip-updated {
+        background: var(--warning-050); color: var(--warning-600);
+        padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+        font-size: var(--text-xs); font-weight: 600;
+    }
+    .slip-footer {
+        background: var(--surface-2); padding: var(--space-4) var(--space-6);
+        font-size: var(--text-sm); color: var(--text-muted);
+    }
+</style>
+{% endblock %}

@@ -99,6 +99,9 @@ def login():
         if not user:
             flash('Invalid email or password according to your selected role.', 'danger')
             return redirect(url_for('main.login'))
+        if user.is_deleted:
+            flash('This account has been deactivated. Please contact the administrator.', 'danger')
+            return redirect(url_for('main.login'))
         user_name = user.full_name
         if user and user.role.lower() == role.lower() and check_password_hash(user.password, password):
             login_user(user)
@@ -282,10 +285,17 @@ def update_profile():
 
         elif current_user.role.lower() == 'doctor':
             d_user  = Doctor.query.get(current_user.doctor.id)
-            d_user.full_name = request.form.get('full_name')
-            d_user.specialization = request.form.get('specialization')
-            d_user.experiencer_years = request.form.get('experience_years')
-            d_user.bio = request.form.get('bio')
+            user.phone_number = request.form.get('phone_number') or user.phone_number
+            age_val = request.form.get('age')
+            if age_val and age_val.isdigit():
+                user.age = int(age_val)
+            user.gender = request.form.get('gender') or user.gender
+            d_user.specialization = request.form.get('specialization') or d_user.specialization
+            exp_val = request.form.get('experience_years')
+            if exp_val and exp_val.isdigit():
+                d_user.experience_years = int(exp_val)
+            d_user.qualification = request.form.get('qualification') or d_user.qualification
+            d_user.bio = request.form.get('bio') or ''
         
         db.session.commit()
         
@@ -312,7 +322,17 @@ def doctor_dashboard():
     appointments = Appointment.query.filter_by(doctor_id=doctor.id).order_by(Appointment.appointment_datetime.desc()).all()
     t_upcomming_appt = Appointment.query.filter(Appointment.doctor_id==doctor.id,Appointment.status=='booked').count()
     t_done_appt = Appointment.query.filter(Appointment.doctor_id==doctor.id,Appointment.status!='booked').count()
-    return render_template('doctor/dashboard.html' , user=current_user, appointments=appointments , t_upcomming_appt = t_upcomming_appt , t_done_appt = t_done_appt)
+
+    # Feature 2: today's load
+    today_booked = Appointment.query.filter(
+        Appointment.doctor_id == doctor.id,
+        Appointment.status != 'Cancelled',
+        db.func.date(Appointment.appointment_datetime) == date.today()
+    ).count()
+    today_max = doctor.max_appointments_per_day or 20
+
+    return render_template('doctor/dashboard.html' , user=current_user, appointments=appointments , t_upcomming_appt = t_upcomming_appt , t_done_appt = t_done_appt,
+                           today_booked=today_booked, today_max=today_max)
 
 
 @main.route('/patient/dashboard')
@@ -331,7 +351,19 @@ def patient_dashboard():
         if appt.status.lower() == 'completed':
             total_medical_record += 1
 
-    return render_template('patient/dashboard.html' , user=current_user , departments=departments , appointments=appointments , upcoming_appointments_count=upcoming_appointments_count , total_medical_record=total_medical_record)
+    # Next upcoming appointment for the slip card (Feature 3)
+    next_upcoming = Appointment.query.filter(
+        Appointment.patient_id == current_user.patient.id,
+        Appointment.status == 'booked',
+        Appointment.appointment_datetime >= datetime.now()
+    ).order_by(Appointment.appointment_datetime.asc()).first()
+    all_upcoming = Appointment.query.filter(
+        Appointment.patient_id == current_user.patient.id,
+        Appointment.status == 'booked'
+    ).order_by(Appointment.appointment_datetime.asc()).all()
+
+    return render_template('patient/dashboard.html' , user=current_user , departments=departments , appointments=appointments , upcoming_appointments_count=upcoming_appointments_count , total_medical_record=total_medical_record,
+                           next_upcoming=next_upcoming, all_upcoming=all_upcoming)
 
 
 
@@ -342,11 +374,26 @@ def admin_dashboard():
         flash('Access denied.', 'danger')
         return redirect(url_for('main.home'))
     appointments = Appointment.query.order_by(Appointment.appointment_datetime.desc()).all()
-    doctors = Doctor.query.all()
+    doctors = Doctor.query.join(User).filter(User.is_deleted.is_(False)).all()
     patients = Patient.query.all()
     total_appointments = Appointment.query.count()
-    total_doctors = Doctor.query.count()
+    total_doctors = Doctor.query.join(User).filter(User.is_deleted.is_(False)).count()
     total_patients = Patient.query.count()
+
+    # Appointments flagged as needing manual reassignment (Feature 1)
+    needs_reassignment = Appointment.query.filter(
+        Appointment.needs_reassignment.is_(True),
+        Appointment.status != 'Cancelled'
+    ).order_by(Appointment.appointment_datetime.asc()).all()
+    reassignment_options = {}
+    for appt in needs_reassignment:
+        options = Doctor.query.join(User).filter(
+            Doctor.department_id == appt.doctor.department_id,
+            Doctor.id != appt.doctor_id,
+            Doctor.is_active.is_(True),
+            User.is_deleted.is_(False)
+        ).all()
+        reassignment_options[appt.id] = options
 
     # --- Analytics data (server-side, real queries) ---
     # 1. Appointments booked per day (last 14 days)
@@ -397,7 +444,9 @@ def admin_dashboard():
                            chart_appointments=chart_appointments,
                            chart_dept_patients=chart_dept_patients,
                            chart_workload=chart_workload,
-                           status_labels=status_labels, status_data=status_data)
+                           status_labels=status_labels, status_data=status_data,
+                           needs_reassignment=needs_reassignment,
+                           reassignment_options=reassignment_options)
 
 
 
@@ -418,7 +467,7 @@ def all_doctors():
     department = request.args.get('department', '').strip()
     status = request.args.get('status', '').strip()
 
-    query = Doctor.query.join(User, Doctor.user_id == User.id).join(Department, Doctor.department_id == Department.id)
+    query = Doctor.query.join(User, Doctor.user_id == User.id).join(Department, Doctor.department_id == Department.id).filter(User.is_deleted.is_(False))
     if q:
         like = f'%{q}%'
         query = query.filter(db.or_(User.full_name.ilike(like), User.email.ilike(like), Doctor.specialization.ilike(like)))
@@ -431,9 +480,21 @@ def all_doctors():
 
     doctors = query.order_by(User.full_name.asc()).paginate(page=page, per_page=per_page, error_out=False)
     departments = Department.query.all()
+
+    # Feature 2: today's load per doctor (booked / capacity)
+    today_str = date.today()
+    today_loads = {}
+    for d in doctors.items:
+        booked_today = Appointment.query.filter(
+            Appointment.doctor_id == d.id,
+            Appointment.status != 'Cancelled',
+            db.func.date(Appointment.appointment_datetime) == today_str
+        ).count()
+        today_loads[d.id] = {'booked': booked_today, 'max': d.max_appointments_per_day or 20}
+
     return render_template('/admin/all_doctors.html', doctors=doctors, departments=departments,
                            total=doctors.total, page=page, pages=doctors.pages,
-                           q=q, department=department, status=status)
+                           q=q, department=department, status=status, today_loads=today_loads)
 
 
 @main.route('/admin/patients',methods=['GET'])
@@ -504,52 +565,78 @@ def all_appointments():
 # @admin_required
 def add_doctor():
     if request.method == 'POST':
-        full_name = request.form.get('full_name')
-        email = request.form.get('email')
-        experience_year = request.form.get('experience_year')
-        phone_number = request.form.get('phone_number')
-        specialization = request.form.get('specialization')
-        age = request.form.get('age')
-        gender = request.form.get('gender')
-        qualification = request.form.get('qualification')
-        bio = request.form.get('bio')
-        hashed_password = generate_password_hash('Doctor@2024')
-        dep = Department.query.filter_by(name=specialization).first()
-        if not dep:
-            dep = Department(name=specialization , description=f'Department of {specialization}')
-            db.session.add(dep)
-            db.session.commit()
-        dep_id = dep.id
-        new_doctor = User(
-            full_name=full_name,
-            email=email,
-            password=hashed_password,
-            phone_number=phone_number,
-            age=age,
-            gender=gender,
-            role='doctor'
-        )
-        doctor_data = Doctor(
-            department_id=dep_id,
-            qualification=qualification,
-            specialization=specialization,
-            experience_years=experience_year,
-            bio = bio,
-            user = new_doctor
+        if current_user.role.lower() != 'admin':
+            flash('Access denied.', 'danger')
+            return redirect(url_for('main.home'))
 
-        )
+        full_name = (request.form.get('full_name') or '').strip()
+        email = (request.form.get('email') or '').strip().lower()
+        specialization = (request.form.get('specialization') or '').strip()
+
+        # Only name, email and department are required to create the account
+        if not full_name or not email or not specialization:
+            flash('Please provide the doctor name, email and department.', 'danger')
+            return redirect(url_for('main.add_doctor'))
+        if '@' not in email or '.' not in email:
+            flash('Please enter a valid email address.', 'danger')
+            return redirect(url_for('main.add_doctor'))
+
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Email already registered. Please use a different email.', 'warning')
             return redirect(url_for('main.add_doctor'))
 
+        # Auto-generate a temporary password
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits
+        generated_password = 'Doc@' + ''.join(secrets.choice(alphabet) for _ in range(8))
+
+        # Get or create the department from the specialization entered
+        dep = Department.query.filter_by(name=specialization).first()
+        if not dep:
+            dep = Department(name=specialization, description=f'Department of {specialization}')
+            db.session.add(dep)
+            db.session.commit()
+        dep_id = dep.id
+
+        new_doctor = User(
+            full_name=full_name,
+            email=email,
+            password=generate_password_hash(generated_password),
+            phone_number='0000000000',   # doctor completes this in Profile Settings
+            age=0,                       # doctor completes this in Profile Settings
+            gender='Other',              # doctor completes this in Profile Settings
+            role='doctor'
+        )
+        doctor_data = Doctor(
+            department_id=dep_id,
+            qualification='Not specified',  # doctor completes this in Profile Settings
+            specialization=specialization,
+            experience_years=0,             # doctor completes this in Profile Settings
+            bio='',
+            user=new_doctor
+        )
 
         db.session.add(new_doctor)
         db.session.add(doctor_data)
         db.session.commit()
 
+        # Send credentials to the doctor's email (falls back to console log if SMTP not configured)
+        try:
+            from .emailer import send_doctor_credentials_email
+            send_doctor_credentials_email(
+                doctor_name=full_name,
+                email=email,
+                generated_password=generated_password,
+                login_url=request.host_url
+            )
+        except Exception as e:
+            print('Credentials email error:', e)
 
         flash('Doctor added successfully!', 'success')
+        flash(f'Login credentials have been sent to {email}. '
+              f'Temporary password: {generated_password} (doctor can change it after first login).', 'info')
         return redirect(url_for('main.admin_dashboard'))
     return render_template('admin/add_doctor.html')
 
@@ -572,20 +659,179 @@ def delete_doctor(doctor_id):
         flash("access denied you are not admin , danger")
         return redirect(url_for('main.home'))
     doctor = Doctor.query.get_or_404(doctor_id)
-    new_doctor = Doctor.query.filter_by(specialization=doctor.specialization).first()
-    appointments = Appointment.query.filter_by(doctor_id=doctor.id).all()
-    for appt in appointments:
-        if new_doctor and appt.doctor_id != new_doctor.id and appt.status.lower() == 'booked':
-            appt.doctor_id = new_doctor.id
-        else:
-            db.session.delete(appt)
-
     user = User.query.get_or_404(doctor.user_id)
-    db.session.delete(doctor)
-    db.session.delete(user)
+
+    if user.is_deleted or not doctor.is_active and user.is_deleted:
+        # Already soft-deleted
+        if request.method == 'POST':
+            flash('This doctor is already deactivated.', 'info')
+            return redirect(url_for('main.all_doctors'))
+        return redirect(url_for('main.view_doctor', doctor_id=doctor.id))
+
+    now = datetime.now()
+    upcoming = Appointment.query.filter(
+        Appointment.doctor_id == doctor.id,
+        Appointment.appointment_datetime >= now,
+        db.func.lower(Appointment.status) == 'booked'
+    ).all()
+
+    if request.method == 'POST':
+        perform_doctor_deactivation(doctor, user, upcoming, request)
+        flash('Doctor deactivated successfully. Patient data preserved; '
+              'appointments reassigned or flagged as needing attention.', 'success')
+        return redirect(url_for('main.all_doctors'))
+
+    # GET -> show confirmation summary
+    reassignable = []
+    needs_attention = []
+    for appt in upcoming:
+        replacement = find_replacement_doctor(doctor, appt)
+        if replacement:
+            reassignable.append((appt, replacement))
+        else:
+            needs_attention.append(appt)
+
+    return render_template('admin/confirm_delete_doctor.html', doctor=doctor,
+                           upcoming=upcoming, reassignable=reassignable,
+                           needs_attention=needs_attention)
+
+
+def find_replacement_doctor(doctor, appointment):
+    """Find an active doctor in the same department who can take over this appointment."""
+    if not appointment.appointment_datetime:
+        return None
+    candidates = Doctor.query.filter(
+        Doctor.department_id == doctor.department_id,
+        Doctor.id != doctor.id,
+        Doctor.is_active.is_(True)
+    ).all()
+    # Exclude doctors whose user account is soft-deleted
+    candidates = [d for d in candidates if d.user and not d.user.is_deleted]
+    for candidate in candidates:
+        # 1. Capacity check for that date
+        day_booked = Appointment.query.filter(
+            Appointment.doctor_id == candidate.id,
+            Appointment.status != 'Cancelled',
+            db.func.date(Appointment.appointment_datetime) == appointment.appointment_datetime.date()
+        ).count()
+        if day_booked >= (candidate.max_appointments_per_day or 20):
+            continue
+        # 2. Availability check for that day-of-week / time
+        day_name = appointment.appointment_datetime.strftime('%A')
+        avail = DoctorAvailability.query.filter_by(
+            doctor_id=candidate.id, day_of_week=day_name
+        ).first()
+        if not avail or not avail.is_available:
+            continue
+        appt_time = appointment.appointment_datetime.time()
+        in_morning = avail.start_time_before_lunch and avail.end_time_before_lunch and \
+            avail.start_time_before_lunch <= appt_time <= avail.end_time_before_lunch
+        in_evening = avail.start_time_after_lunch and avail.end_time_after_lunch and \
+            avail.start_time_after_lunch <= appt_time <= avail.end_time_after_lunch
+        if in_morning or in_evening:
+            return candidate
+    return None
+
+
+def perform_doctor_deactivation(doctor, user, upcoming, request=None):
+    """Soft-delete the doctor and handle their upcoming appointments."""
+    from datetime import datetime as _dt
+
+    reassigned_count = 0
+    needs_attention_count = 0
+
+    for appt in upcoming:
+        replacement = find_replacement_doctor(doctor, appt)
+        patient = appt.patient
+        old_name = f"Dr. {doctor.user.full_name}"
+        dt_str = appt.appointment_datetime.strftime('%Y-%m-%d %H:%M')
+
+        if replacement:
+            appt.reassigned_from_doctor_id = doctor.id
+            appt.needs_reassignment = False
+            appt.reassigned_at = _dt.utcnow()
+            appt.doctor_id = replacement.id
+            reassigned_count += 1
+            if patient:
+                create_notification(
+                    patient.user_id,
+                    'Appointment reassigned',
+                    f'Your appointment with {old_name} on {dt_str} has been reassigned to Dr. {replacement.user.full_name} at the same time.',
+                    url_for('main.view_appointment', appointment_id=appt.id))
+                try:
+                    from .emailer import send_appointment_email
+                    send_appointment_email(appt, 'confirmed')
+                except Exception as e:
+                    print('Reassign email error:', e)
+        else:
+            appt.needs_reassignment = True
+            needs_attention_count += 1
+            if patient:
+                create_notification(
+                    patient.user_id,
+                    'Appointment needs rescheduling',
+                    f'Your appointment with {old_name} on {dt_str} needs to be rescheduled. Our team will contact you shortly.',
+                    url_for('main.view_appointment', appointment_id=appt.id))
+
+    # Soft-delete the doctor account
+    doctor.is_active = False
+    user.is_deleted = True
     db.session.commit()
-    flash('Doctor record deleted successfully!', 'success')
-    return redirect(url_for('main.all_doctors'))
+    return reassigned_count, needs_attention_count
+
+
+def find_next_available_day(doctor, capacity_map, max_per_day=20):
+    """Find the next date (from today) where the doctor has capacity and an availability slot."""
+    from datetime import timedelta as _td, date as _date
+    today = _date.today()
+    week_days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    for offset in range(1, 61):  # look ahead 60 days
+        d = today + _td(days=offset)
+        dk = d.strftime('%Y-%m-%d')
+        booked = capacity_map.get(dk, 0)
+        if booked >= max_per_day:
+            continue
+        day_name = d.strftime('%A')
+        avail = DoctorAvailability.query.filter_by(
+            doctor_id=doctor.id, day_of_week=day_name
+        ).first()
+        if avail and avail.is_available:
+            return dk
+    return None
+
+
+@main.route('/admin/appointment/<int:appointment_id>/reassign', methods=['POST'])
+@login_required
+def admin_reassign_appointment(appointment_id):
+    if current_user.role.lower() != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.home'))
+    appt = Appointment.query.get_or_404(appointment_id)
+    new_doctor_id = request.form.get('doctor_id')
+    if not new_doctor_id:
+        flash('Please select a doctor to reassign to.', 'warning')
+        return redirect(request.referrer or url_for('main.admin_dashboard'))
+
+    new_doctor = Doctor.query.get(int(new_doctor_id))
+    if not new_doctor or not new_doctor.is_active or new_doctor.user.is_deleted:
+        flash('Selected doctor is not available.', 'danger')
+        return redirect(request.referrer or url_for('main.admin_dashboard'))
+
+    old_name = f"Dr. {appt.doctor.user.full_name}"
+    appt.reassigned_from_doctor_id = appt.doctor_id
+    appt.needs_reassignment = False
+    appt.reassigned_at = datetime.utcnow()
+    appt.doctor_id = new_doctor.id
+
+    patient = appt.patient
+    if patient:
+        create_notification(patient.user_id, 'Appointment reassigned',
+                            f'Your appointment has been reassigned to Dr. {new_doctor.user.full_name} on {appt.appointment_datetime.strftime("%Y-%m-%d %H:%M")}.',
+                            url_for('main.view_appointment', appointment_id=appt.id))
+
+    db.session.commit()
+    flash(f'Appointment #{appt.id} reassigned to Dr. {new_doctor.user.full_name}.', 'success')
+    return redirect(request.referrer or url_for('main.admin_dashboard'))
 
 @main.route('/admin/block_doctor/<int:doctor_id>', methods=['POST','GET'])
 @login_required
@@ -624,6 +870,9 @@ def edit_doctor(doctor_id):
         doctor.user.phone_number = request.form.get('phone_number')
         doctor.specialization = request.form.get('specialization')
         doctor.experience_years = request.form.get('experience_years')
+        cap_val = request.form.get('max_appointments_per_day')
+        if cap_val and str(cap_val).isdigit():
+            doctor.max_appointments_per_day = int(cap_val)
         db.session.commit()
         flash('Doctor details updated successfully!', 'success')
         return redirect(url_for('main.all_doctors'))
@@ -1373,7 +1622,7 @@ def doctor_list():
     department = request.args.get('department', '').strip()
     specialization = request.args.get('specialization', '').strip()
 
-    query = Doctor.query.join(User, Doctor.user_id == User.id)
+    query = Doctor.query.join(User, Doctor.user_id == User.id).filter(User.is_deleted.is_(False), Doctor.is_active.is_(True))
     if q:
         like = f'%{q}%'
         query = query.filter(db.or_(User.full_name.ilike(like), Doctor.specialization.ilike(like)))
@@ -1419,7 +1668,10 @@ def format_time(t):
 def doctor_availability(doctor_id):
    
     doctor = Doctor.query.get_or_404(doctor_id)
-    
+    if doctor.user.is_deleted or not doctor.is_active:
+        flash('This doctor is no longer available. Please choose another doctor.', 'warning')
+        return redirect(url_for('main.doctor_list'))
+
     # Fetch availability from DB
     availabilities = DoctorAvailability.query.filter_by(doctor_id=doctor.id).all()
     
@@ -1465,8 +1717,18 @@ def doctor_availability(doctor_id):
     booked_appointments = Appointment.query.filter_by(doctor_id=doctor.id).filter(Appointment.status != 'Cancelled').all()
     booked_json = [a.appointment_datetime.strftime('%Y-%m-%d %H:%M:%S') for a in booked_appointments if a.appointment_datetime]
 
+    # ---- Feature 2: daily capacity ----
+    max_per_day = doctor.max_appointments_per_day or 20
+    capacity_map = {}
+    for a in booked_appointments:
+        if a.appointment_datetime:
+            dk = a.appointment_datetime.strftime('%Y-%m-%d')
+            capacity_map[dk] = capacity_map.get(dk, 0) + 1
+    next_available = find_next_available_day(doctor, capacity_map, max_per_day)
+
     return render_template('auth/doct_availability.html', doctor=doctor, schedule=schedule_data, week_days=week_days,
-                           slots_json=slots_json, booked_json=booked_json)
+                           slots_json=slots_json, booked_json=booked_json,
+                           max_per_day=max_per_day, capacity_map=capacity_map, next_available=next_available)
 
 
 @main.route('/book_appointment_slot', methods=['POST'])
@@ -1492,6 +1754,33 @@ def book_appointment_slot():
             flash("Please choose a future date and time.", "warning")
             return redirect(url_for('main.doctor_availability', doctor_id=doctor_id))
 
+        # ---- Feature 2: enforce daily capacity ----
+        doctor = Doctor.query.get(int(doctor_id))
+        if not doctor or doctor.user.is_deleted or not doctor.is_active:
+            flash('This doctor is no longer available. Please choose another doctor.', 'warning')
+            return redirect(url_for('main.doctor_list'))
+
+        max_per_day = doctor.max_appointments_per_day or 20
+        day_booked = Appointment.query.filter(
+            Appointment.doctor_id == doctor.id,
+            Appointment.status != 'Cancelled',
+            db.func.date(Appointment.appointment_datetime) == final_datetime.date()
+        ).count()
+        if day_booked >= max_per_day:
+            # Build capacity map for this doctor to suggest the next available day
+            all_booked = Appointment.query.filter_by(doctor_id=doctor.id).filter(Appointment.status != 'Cancelled').all()
+            capacity_map = {}
+            for a in all_booked:
+                if a.appointment_datetime:
+                    dk = a.appointment_datetime.strftime('%Y-%m-%d')
+                    capacity_map[dk] = capacity_map.get(dk, 0) + 1
+            nxt = find_next_available_day(doctor, capacity_map, max_per_day)
+            if nxt:
+                flash(f"Dr. {doctor.user.full_name} is fully booked on this day ({day_booked}/{max_per_day}). Next available day: {nxt}.", 'warning')
+            else:
+                flash(f"Dr. {doctor.user.full_name} is fully booked on this day. Please try another date.", 'warning')
+            return redirect(url_for('main.doctor_availability', doctor_id=doctor_id))
+
         # check already booked? (Prevent duplicate)
         existing = Appointment.query.filter_by(
             doctor_id=doctor_id,
@@ -1514,7 +1803,6 @@ def book_appointment_slot():
         db.session.flush()
 
         # Notify the doctor
-        doctor = Doctor.query.get(int(doctor_id))
         if doctor:
             create_notification(doctor.user_id, "New appointment booked",
                                 f"{current_user.full_name} booked an appointment on {final_datetime.strftime('%Y-%m-%d %H:%M')}.",
@@ -1529,7 +1817,7 @@ def book_appointment_slot():
         db.session.commit()
 
         flash("Appointment booked successfully!", "success")
-        return redirect(url_for('main.booked_appointment_list'))
+        return redirect(url_for('main.booking_slip', appointment_id=new_appt.id))
 
     except Exception as e:
         db.session.rollback()
@@ -1539,6 +1827,108 @@ def book_appointment_slot():
         if doctor_id:
             return redirect(url_for('main.doctor_availability', doctor_id=doctor_id))
         return redirect(url_for('main.patient_dashboard'))
+
+
+# ===================== Booking Confirmation Slip (Feature 3) =====================
+
+def _can_view_appointment(appointment):
+    role = current_user.role.lower()
+    if role == 'admin':
+        return True
+    if role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id:
+        return True
+    if role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id:
+        return True
+    return False
+
+
+@main.route('/booking/<int:appointment_id>/slip', methods=['GET'])
+@login_required
+def booking_slip(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    if not _can_view_appointment(appointment):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+    return render_template('patient/booking_slip.html', appointment=appointment)
+
+
+@main.route('/booking/<int:appointment_id>/slip_pdf', methods=['GET'])
+@login_required
+def booking_slip_pdf(appointment_id):
+    from fpdf import FPDF
+    from io import BytesIO
+
+    appointment = Appointment.query.get_or_404(appointment_id)
+    if not _can_view_appointment(appointment):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+
+    doctor = appointment.doctor
+    patient = appointment.patient
+    ref_no = f"HMS-{appointment.id:05d}"
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_left_margin(12)
+    pdf.set_right_margin(12)
+
+    # Header band
+    pdf.set_fill_color(37, 99, 235)
+    pdf.rect(0, 0, 210, 30, 'F')
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font('Helvetica', 'B', 18)
+    pdf.cell(0, 12, 'HMS Portal Hospital', ln=True, align='C')
+    pdf.set_font('Helvetica', '', 9)
+    pdf.cell(0, 6, 'Appointment Confirmation Slip  |  Ref: %s' % ref_no, ln=True, align='C')
+    pdf.set_text_color(30, 30, 30)
+    pdf.ln(12)
+
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.set_text_color(37, 99, 235)
+    pdf.cell(0, 8, 'APPOINTMENT CONFIRMATION', ln=True)
+    pdf.set_draw_color(6, 182, 212)
+    pdf.line(12, pdf.get_y(), 198, pdf.get_y())
+    pdf.ln(6)
+
+    pdf.set_text_color(30, 30, 30)
+    pdf.set_font('Helvetica', '', 11)
+    pdf.cell(0, 7, 'Booking Reference: %s' % ref_no, ln=True)
+    pdf.cell(0, 7, 'Status: Confirmed', ln=True)
+    pdf.ln(3)
+
+    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(0, 7, 'Doctor', ln=True)
+    pdf.set_font('Helvetica', '', 11)
+    pdf.cell(0, 7, 'Dr. %s  (%s)' % (doctor.user.full_name, doctor.specialization), ln=True)
+    pdf.ln(2)
+
+    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(0, 7, 'Patient', ln=True)
+    pdf.set_font('Helvetica', '', 11)
+    pdf.cell(0, 7, patient.user.full_name, ln=True)
+    pdf.ln(2)
+
+    pdf.set_font('Helvetica', 'B', 11)
+    pdf.cell(0, 7, 'Date & Time', ln=True)
+    pdf.set_font('Helvetica', '', 11)
+    dt = appointment.appointment_datetime
+    pdf.cell(0, 7, dt.strftime('%A, %B %d, %Y at %I:%M %p') if dt else 'N/A', ln=True)
+    pdf.ln(6)
+
+    pdf.set_draw_color(200, 200, 200)
+    pdf.line(12, pdf.get_y(), 198, pdf.get_y())
+    pdf.ln(4)
+    pdf.set_font('Helvetica', 'I', 9)
+    pdf.set_text_color(130, 130, 130)
+    pdf.cell(0, 6, 'Please arrive 10 minutes before your appointment time.', ln=True, align='C')
+    pdf.cell(0, 6, 'Carry this slip or your booking reference number.', ln=True, align='C')
+
+    buf = BytesIO()
+    pdf.output(buf)
+    buf.seek(0)
+    from flask import Response
+    return Response(buf, mimetype='application/pdf',
+                    headers={'Content-Disposition': f'attachment; filename=booking_slip_{ref_no}.pdf'})
 
 
 

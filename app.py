@@ -73,6 +73,11 @@ def create_app():
         create_admin_user()
 
     # Custom error handlers
+    @app.context_processor
+    def inject_globals():
+        from datetime import datetime as _dt
+        return {'now_utc_year': _dt.utcnow().year}
+
     @app.errorhandler(404)
     def not_found(error):
         return render_template_safe('errors/404.html', code=404), 404

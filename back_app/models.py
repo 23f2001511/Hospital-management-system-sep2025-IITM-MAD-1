@@ -18,6 +18,7 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(50), nullable=False ,default='Patient')  # 'admin', 'doctor', 'patient'
     profile_picture = db.Column(db.String(250), nullable=True, default='default.png')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_deleted = db.Column(db.Boolean, default=False)  # soft-delete flag (keeps audit history intact)
     
     # Relationships
     # Yeh batata hai ki ek User ya to ek Doctor ya ek Patient ho sakta hai.
@@ -45,9 +46,10 @@ class Doctor(db.Model):
     experience_years = db.Column(db.Integer, nullable=False)
     bio = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    max_appointments_per_day = db.Column(db.Integer, default=20)  # daily booking capacity ceiling
     
     # Relationships
-    appointments = db.relationship('Appointment', backref='doctor')
+    appointments = db.relationship('Appointment', backref='doctor', foreign_keys='Appointment.doctor_id')
     availabilities = db.relationship('DoctorAvailability', backref='doctor', cascade="all, delete-orphan")
 
     @property
@@ -83,9 +85,14 @@ class Appointment(db.Model):
     appointment_datetime = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(50), nullable=False, default='Scheduled')  # 'Scheduled', 'Completed', 'Cancelled'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Reassignment tracking (Feature 1)
+    reassigned_from_doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=True)
+    needs_reassignment = db.Column(db.Boolean, default=False)  # flagged for manual admin action
+    reassigned_at = db.Column(db.DateTime, nullable=True)
     
-    # Relationship
+    # Relationships
     history = db.relationship('PatientHistory', backref='appointment', uselist=False, cascade="all, delete-orphan")
+    reassigned_from = db.relationship('Doctor', foreign_keys=[reassigned_from_doctor_id], post_update=True)
 
 # 6. Patient History Table (Connected to one appointment)
 class PatientHistory(db.Model):
@@ -150,7 +157,7 @@ class VideoRoom(db.Model):
     started_at = db.Column(db.DateTime, nullable=True)
     ended_at = db.Column(db.DateTime, nullable=True)
 
-    appointment = db.relationship('Appointment', backref=db.backref('video_room', uselist=False))
+    appointment = db.relationship('Appointment', backref=db.backref('video_room', uselist=False, cascade="all, delete-orphan"))
 
 # 11. In-App Notifications Table
 class Notification(db.Model):
@@ -192,5 +199,5 @@ class DoctorRating(db.Model):
 
     doctor = db.relationship('Doctor', backref=db.backref('ratings', cascade="all, delete-orphan"))
     patient = db.relationship('Patient', backref=db.backref('ratings', cascade="all, delete-orphan"))
-    appointment = db.relationship('Appointment', backref=db.backref('rating', uselist=False))
+    appointment = db.relationship('Appointment', backref=db.backref('rating', uselist=False, cascade="all, delete-orphan"))
 

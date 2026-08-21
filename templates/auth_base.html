@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HMS Portal{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="auth-page">
+    <div class="auth-shell">
+        <!-- Left illustration panel -->
+        <div class="auth-side">
+            <div class="blob auth-blob-1"></div>
+            <div class="blob auth-blob-2"></div>
+            <div class="auth-side-inner">
+                <a href="{{ url_for('main.home') }}" class="auth-brand">
+                    <div class="brand-logo"><i class="bi bi-heart-pulse-fill"></i></div>
+                    <span class="brand-text">HMS<span> Portal</span></span>
+                </a>
+                <div class="auth-side-content">
+                    <h2>Healthcare, <span>beautifully simple.</span></h2>
+                    <p>Book appointments, consult with doctors via video, chat in real-time, and keep your medical history in one secure place.</p>
+                    <ul class="auth-features">
+                        <li><i class="bi bi-shield-check"></i> Secure &amp; private records</li>
+                        <li><i class="bi bi-camera-video"></i> Live video consultations</li>
+                        <li><i class="bi bi-chat-dots"></i> Real-time doctor chat</li>
+                        <li><i class="bi bi-file-earmark-pdf"></i> Digital prescriptions</li>
+                    </ul>
+                </div>
+                <div class="auth-side-foot">
+                    <span>© {{ now_utc_year }} HMS Portal</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="auth-main">
+            <div class="auth-main-top">
+                <button class="dark-toggle" type="button" title="Toggle dark mode">
+                    <i class="bi bi-moon-stars-fill dark-toggle-icon"></i>
+                </button>
+            </div>
+            <div class="auth-form-wrap">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+      <div data-flash-message="{{ message }}" data-flash-category="{{ category }}"></div>
+      {% endfor %}
+    {% endwith %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+

@@ -1,200 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>View Report | HMS Portal</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../static/css/style.css">
-
-<style>
-
-
-    /* Report Card */
-    .report-box{
-        background:#fff;padding:32px;border-radius:14px;
-        box-shadow:0 6px 20px rgba(0,0,0,.09);
-    }
-
-    .profile-img{
-        height:105px;width:105px;border-radius:50%;
-        object-fit:cover;border:3px solid #007bff;
-    }
-
-    .info-row b{width:150px;display:inline-block;margin-bottom:4px;}
-
-    .section-title{
-        font-size:19px;font-weight:600;margin-top:28px;margin-bottom:10px;
-        color:#0056d6;border-left:5px solid #0056d6;padding-left:10px;
-    }
-
-    .med-box{
-        background:#f1f7ff;border:1px solid #d8e7ff;padding:10px;border-radius:6px;
-    }
-
-    /* PRINT VIEW */
-    @media print{
-        #sidebar,.top-navbar,.footer,.no-print{display:none!important;}
-        body{background:white!important;margin:0;}
-        #content{margin:0;width:100%;padding:0;}
-        .report-box{border:1px solid #999;margin:0;border-radius:0;padding:25px;}
-        .section-title{border-left:4px solid #000;color:#000;}
-        .profile-img{border:2px solid #000;}
-    }
-
-</style>
-</head>
-
-<body>
-
-<div class="wrapper">
-
-    <!-- SIDEBAR -->
-        <nav id="sidebar">
-            <div class="sidebar-header d-flex align-items-center">
-                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                    <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
-                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
-                </a>
-            </div>
-
-            <ul class="list-unstyled components">
-                <li class="active">
-                    <a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
-                </li>
-
-                <li>
-                    <a href="{{ url_for('main.doctor_list') }}">
-                        <i class="bi bi-person-badge-fill me-2"></i>Find a Doctor
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ url_for('main.booked_appointment_list') }}">
-                        <i class="bi bi-calendar-check-fill me-2"></i>My Appointments
-                    </a>
-                </li>
-
-                <li>
-                    <a href="{{ url_for('main.update_profile') }}">
-                        <i class="bi bi-person-fill-gear me-2"></i>Profile Settings
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-
-    <!-- Content -->
-    <div id="content">
-
-        <nav class="top-navbar d-flex justify-content-between align-items-center no-print">
-            <h5 class="fw-semibold m-0">Welcome, {{current_user.full_name}}</h5>
-            <div>
-                <button class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="bi bi-person-circle"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a href="{{url_for('main.update_profile')}}" class="dropdown-item">View Profile</a></li>
-                    <li><hr></li>
-                    <li><a href="{{url_for('main.logout')}}" class="dropdown-item text-danger">Logout</a></li>
-                </ul>
-            </div>
-        </nav>
-
-        <!-- Medical Report -->
-        <div class="report-box">
-
-            <h2 class="text-primary text-center fw-bold mb-4">🧾 MEDICAL REPORT – HMS</h2>
-
-            <div class="d-flex align-items-center gap-4 mb-3">
-                <img src="{{ url_for('static', filename='img/' + (appointment.patient.user.profile_picture or 'default.png')) }}" alt="{{ appointment.patient.user.full_name }}" class="rounded-circle" width="120" height="120" style="border:2px solid #1abc9c;">
-
-                <div>
-                    <h4 class="fw-bold">{{appointment.patient.user.full_name}}</h4>
-                    <div class="text-muted">
-                        HMS Patient ID: <b>#HMS0{{appointment.patient.id}}</b>
-                    </div>
-                    <div><b>Gender:</b> {{appointment.patient.user.gender}}  |  <b>Age:</b> {{appointment.patient.user.age}}</div>
-                </div>
-            </div>
-            <hr>
-
-            <div class="info-row mb-3">
-                <b>Referred by : </b> Dr. {{appointment.doctor.user.full_name}} <br>
-                <b>Department : </b> {{appointment.doctor.specialization}} <br>
-                <b>Visit Date : </b> {{appointment.appointment_datetime.strftime("%d-%b-%Y %I:%M %p")}}
-            </div>
-
-            <div class="section-title">Visit Summary</div>
-
-            {% if appointment.history %}
-                <p><b>Visit Type:</b> <span class="text-primary">{{appointment.history.visit_type}}</span></p>
-                <p><b>Tests Done:</b> <span class="text-primary">{{appointment.history.tests_done}}</span></p>
-                <p><b>Diagnosis:</b> <span class="text-primary">{{appointment.history.diagnosis}}</span></p>
-                <p><b>Prescription Notes:</b> <span class="text-primary">{{appointment.history.prescription_notes}}</span></p>
-
-                <div class="section-title">Medicines Prescribed</div>
-                {% for med in appointment.history.medicines %}
-                    <div class="med-box mb-2"><b>{{med.medicine_name}}</b> — {{med.dosage}}</div>
-                {% else %}
-                    <p>No medicine prescribed.</p>
-                {% endfor %}
-            {% else %}
-                <div class="alert alert-warning">No treatment history available.</div>
-            {% endif %}
-
-            {% if appointment.report_files %}
-                <div class="section-title">Attached Lab / Scan Files</div>
-                {% for rf in appointment.report_files %}
-                    <div class="med-box mb-2 d-flex align-items-center justify-content-between">
-                        <span><i class="bi bi-paperclip"></i> {{ rf.original_name }}</span>
-                        <a href="{{ url_for('static', filename='uploads/reports/' + rf.filename) }}" target="_blank" class="btn btn-sm btn-outline-primary">View / Download</a>
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            <div class="text-center mt-4 no-print">
-                <button class="btn btn-dark me-2" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
-                <a href="{{ url_for('main.download_report_pdf', appointment_id=appointment.id) }}" class="btn btn-success me-2"><i class="bi bi-file-earmark-pdf"></i> Download PDF</a>
-                <a href="{{url_for('main.patient_dashboard')}}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Back</a>
-            </div>
-
-            {% if appointment.status.lower() == 'completed' %}
-            <div class="mt-4 no-print border-top pt-4">
-                <h5 class="fw-bold">Rate this Doctor</h5>
-                {% set existing_rating = appointment.rating %}
-                <form action="{{ url_for('main.rate_doctor', appointment_id=appointment.id) }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="d-flex gap-3 align-items-center mb-2" id="starRating">
-                        {% for i in range(1, 6) %}
-                        <button type="button" class="btn btn-outline-warning btn-lg star-btn" data-value="{{ i }}" onclick="selectStar({{ i }})">
-                            <i class="bi {{ 'bi-star-fill' if existing_rating and existing_rating.rating >= i else 'bi-star' }}"></i>
-                        </button>
-                        {% endfor %}
-                        <input type="hidden" name="rating" id="ratingValue" value="{{ existing_rating.rating if existing_rating else 0 }}">
-                    </div>
-                    <div class="mb-2">
-                        <textarea name="review" class="form-control" rows="2" placeholder="Share a short review (optional)">{{ existing_rating.review if existing_rating else '' }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-glow">
-                        <i class="bi bi-star-fill me-1"></i> {{ 'Update Rating' if existing_rating else 'Submit Rating' }}
-                    </button>
-                </form>
-            </div>
-            {% endif %}
-
+{% extends 'base.html' %}
+{% block title %}View Report | HMS Portal{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.patient_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('main.booked_appointment_list') }}">My Appointments</a></li>
+        <li class="breadcrumb-item active">Report #{{ appointment.id }}</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <h4 class="page-title" style="margin-top:0;"><i class="bi bi-file-earmark-text me-2" style="color:var(--primary);"></i>Medical Report</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+            <a href="{{ url_for('main.download_report_pdf', appointment_id=appointment.id) }}" class="btn btn-danger"><i class="bi bi-file-earmark-pdf"></i> Download PDF</a>
         </div>
-
-        <div class="footer text-center text-muted mt-4 no-print">© 2025 HMS Portal</div>
-
     </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <img src="{{ url_for('static', filename='img/' + (appointment.patient.user.profile_picture or 'default.png')) }}"
+                 class="rounded-circle" width="80" height="80" style="border:2px solid var(--primary);object-fit:cover;">
+            <div>
+                <h5 class="mb-1">{{ appointment.patient.user.full_name }}</h5>
+                <small class="text-muted">HMS Patient ID: #HMS0{{ appointment.patient.id }}  |  Gender: {{ appointment.patient.user.gender }}  |  Age: {{ appointment.patient.user.age }}</small>
+            </div>
+        </div>
+        <hr>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label">Referred by</label>
+                <div class="fw-semibold">Dr. {{ appointment.doctor.user.full_name }}</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Department</label>
+                <div class="fw-semibold">{{ appointment.doctor.specialization }}</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Visit Date</label>
+                <div class="fw-semibold">{{ appointment.appointment_datetime.strftime('%d-%b-%Y %I:%M %p') if appointment.appointment_datetime else '—' }}</div>
+            </div>
+        </div>
+
+        {% if appointment.history %}
+        <h6 class="fw-bold mb-3" style="color:var(--primary);"><i class="bi bi-clipboard2-pulse me-2"></i>Visit Summary</h6>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Visit Type</label>
+                <div class="fw-semibold">{{ appointment.history.visit_type or '—' }}</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Tests Done</label>
+                <div class="fw-semibold">{{ appointment.history.tests_done or '—' }}</div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Diagnosis</label>
+                <div>{{ appointment.history.diagnosis or '—' }}</div>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Prescription Notes</label>
+                <div>{{ appointment.history.prescription_notes or '—' }}</div>
+            </div>
+        </div>
+
+        <h6 class="fw-bold mb-3" style="color:var(--primary);"><i class="bi bi-capsule me-2"></i>Medicines Prescribed</h6>
+        {% for med in appointment.history.medicines %}
+        <div class="d-flex justify-content-between align-items-center p-3 rounded mb-2" style="background:var(--surface-2);">
+            <span class="fw-semibold">{{ med.medicine_name }}</span>
+            <span class="badge badge-primary">{{ med.dosage }}</span>
+        </div>
+        {% else %}
+        <p class="text-muted">No medicine prescribed.</p>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-journal-x"></i></div>
+            <h5>No treatment history available</h5>
+        </div>
+        {% endif %}
+
+        {% if appointment.report_files %}
+        <div class="mt-4">
+            <h6 class="fw-bold mb-3" style="color:var(--primary);"><i class="bi bi-paperclip me-2"></i>Attached Files</h6>
+            {% for rf in appointment.report_files %}
+            <div class="d-flex justify-content-between align-items-center p-3 rounded mb-2" style="background:var(--surface-2);">
+                <span><i class="bi bi-paperclip"></i> {{ rf.original_name }}</span>
+                <a href="{{ url_for('static', filename='uploads/reports/' + rf.filename) }}" target="_blank" class="btn btn-outline-primary btn-sm">View / Download</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if appointment.status.lower() == 'completed' %}
+        <div class="mt-4 border-top pt-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-star me-2" style="color:var(--primary);"></i>Rate this Doctor</h6>
+            {% set existing_rating = appointment.rating %}
+            <form action="{{ url_for('main.rate_doctor', appointment_id=appointment.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="d-flex gap-2 align-items-center mb-2">
+                    {% for i in range(1, 6) %}
+                    <button type="button" class="btn btn-outline-warning btn-lg star-btn" data-value="{{ i }}" onclick="selectStar({{ i }})">
+                        <i class="bi {{ 'bi-star-fill' if existing_rating and existing_rating.rating >= i else 'bi-star' }}"></i>
+                    </button>
+                    {% endfor %}
+                    <input type="hidden" name="rating" id="ratingValue" value="{{ existing_rating.rating if existing_rating else 0 }}">
+                </div>
+                <div class="mb-2">
+                    <textarea name="review" class="form-control" rows="2" placeholder="Share a short review (optional)">{{ existing_rating.review if existing_rating else '' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-glow">
+                    <i class="bi bi-star-fill me-1"></i> {{ 'Update Rating' if existing_rating else 'Submit Rating' }}
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
 <script>
     function selectStar(value) {
         document.getElementById('ratingValue').value = value;
@@ -205,5 +132,4 @@
         });
     }
 </script>
-</body>
-</html>
+{% endblock %}

@@ -1,468 +1,362 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Dashboard | HMS Portal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../static/css/style.css">
-    <style>
-        .card {
-             border: none;
-             border-radius: 12px;
-             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        
-        .table-row-hidden {
-            display: none;
-        }
-        
-        .availability-row .form-control {
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="wrapper">
-        <!-- Sidebar -->
-        <nav id="sidebar">
-            <div class="sidebar-header d-flex align-items-center">
-                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                     <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
-                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
-                </a>
+{% extends 'base.html' %}
+{% block title %}Doctor Dashboard | HMS Portal{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Dashboard</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<!-- Welcome banner -->
+<div class="welcome-banner reveal">
+    <div class="position-relative" style="z-index:2;">
+        <h3>Welcome, Dr. {{ current_user.full_name }} 👋</h3>
+        <p>Here's your schedule for today. {{ t_upcomming_appt }} upcoming appointment(s) to attend.</p>
+        {% if today_max %}
+        <div class="mt-3 d-flex align-items-center gap-2" style="max-width:320px;">
+            <div class="progress flex-grow-1" style="height:10px;background:rgba(255,255,255,0.25);">
+                <div class="progress-bar" style="width: {{ (today_booked / today_max * 100) | round }}%; background:#a5f3fc;"></div>
             </div>
+            <span style="color:#fff;font-size:.85rem;font-weight:600;white-space:nowrap;">{{ today_booked }}/{{ today_max }} booked today</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
-            <ul class="list-unstyled components">
-                <li class="active"><a href="{{ url_for('main.doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-                <li><a href="{{ url_for('main.manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-                <li><a href="{{ url_for('main.assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
-                <li><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
-            </ul>
-        </nav>
-
-        <!-- Page Content -->
-        <div id="content">
-            <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
-                <div class="container-fluid">
-                    <h4 class="mb-0">Doctor Dashboard</h4>
-                    <div class="d-flex align-items-center ms-auto">
-                        <button class="btn btn-outline-info">
-                           <a href="{{ url_for('main.set_availability') }}" class="text-decoration-none text-primary">
-                            <i class="bi bi-clock-fill me-1"></i> Provide Availability
-                            </a>
-                        </button>
-                        {% include 'partials/notification_bell.html' %}
-                        <ul class="navbar-nav ms-3">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-1 fs-4"></i> Welcome, Dr. {{current_user.full_name}}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="{{url_for('main.update_profile')}}">Profile</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
+<!-- Stat cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4 reveal">
+        <div class="stat-card stat-upcoming">
+            <div class="card-body">
+                <div class="icon icon-pulse"><i class="bi bi-calendar-check"></i></div>
+                <div>
+                    <h5 class="card-title">Upcoming Appointments</h5>
+                    <p class="card-text stat-num" data-count="{{ t_upcomming_appt }}">{{ t_upcomming_appt }}</p>
                 </div>
-            </nav>
-
-            <!-- Main Content -->
-            <div class="main-content">
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% if messages %}
-                    {% for category, message in messages %}
-                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                      </div>
-                    {% endfor %}
-                  {% endif %}
-                {% endwith %}
-
-                <!-- STAT CARDS -->
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <div class="card stat-card stat-upcoming">
-                            <div class="card-body">
-                                <div class="icon icon-pulse"><i class="bi bi-calendar-check-fill"></i></div>
-                                <div>
-                                    <h5 class="card-title">Upcoming Appointments</h5>
-                                    <p class="card-text stat-num" data-count="{{t_upcomming_appt}}">{{t_upcomming_appt}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card stat-card stat-completed">
-                            <div class="card-body">
-                                <div class="icon icon-pulse"><i class="bi bi-check2-circle"></i></div>
-                                <div>
-                                    <h5 class="card-title">Completed</h5>
-                                    <p class="card-text stat-num" data-count="{{t_done_appt}}">{{t_done_appt}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card stat-card stat-doctors">
-                            <div class="card-body">
-                                <div class="icon icon-pulse"><i class="bi bi-people-fill"></i></div>
-                                <div>
-                                    <h5 class="card-title">Assigned Patients</h5>
-                                    <p class="card-text stat-num" data-count="{{t_done_appt}}">{{t_done_appt}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Upcoming Appointments -->
-
-                <div class="card mb-4" >
-
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Upcoming Appointments</h5>
-                        <span class="badge bg-primary rounded-pill">{{t_upcomming_appt }} new</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-
-
-                            <table class="table table-hover align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Sr No.</th>
-                                        <th>Patient Name</th>
-                                        <th>Gender</th>    
-                                        <th>Date & Time</th>
-                                        <th>Add Report</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody id="HMSTable">
-                                {% for appointment in appointments if appointment.status == 'booked' %}
-                                    <tr class="{% if loop.index > 5 %}table-row-hidden{% endif %}">
-                                        <td>{{ loop.index }}</td>
-                                        <td>{{ appointment.patient.user.full_name }}</td>
-                                        <td>{{ appointment.patient.user.gender }}</td>
-                                        <td>{{ appointment.appointment_datetime }}</td>
-                                        <td>
-                                            <!-- ADD REPORT (NO PREFILL) -->
-                                            <button class="btn btn-sm btn-info"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#addHistoryModal_{{ appointment.id }}">
-                                                <i class="bi bi-pencil-square"></i> Add report
-                                            </button>
-                                        </td>
-                                       
-                                        <td>
-                                            <!-- Mark Complete -->
-                                            <a href="{{ url_for('main.update_appointment_status', appointment_id=appointment.id, new_status='Completed') }}"
-                                               class="btn btn-sm btn-success">
-                                                <i class="bi bi-check2-circle"></i> Complete
-                                            </a>
-
-                                            <!-- Cancel -->
-                                            <a href="{{ url_for('main.update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}"
-                                               class="btn btn-sm btn-danger">
-                                                <i class="bi bi-x-circle"></i> Cancel
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    
-
-                                    <!-- ADD HISTORY MODAL (for this upcoming appointment) -->
-                                    <div class="modal fade" id="addHistoryModal_{{ appointment.id }}" tabindex="-1" aria-labelledby="addHistoryLabel_{{ appointment.id }}" aria-hidden="true">
-                                        <div class="modal-dialog modal-xl modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="addHistoryLabel_{{ appointment.id }}">Add Patient History</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST" enctype="multipart/form-data">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <div class="modal-body">
-                                                        <div class="patient-info mb-4 p-3 bg-light rounded border">
-                                                            <h6 class="mb-1">
-                                                                <strong>Patient Name : </strong>{{ appointment.patient.user.full_name }}
-                                                            </h6>
-                                                            <p class="text-muted mb-0">
-                                                                <strong>Department : </strong>{{ current_user.doctor.specialization }}
-                                                            </p>
-                                                        </div>
-                                                        
-                                                        <h6 class="text-primary">VISIT DETAILS</h6>
-                                                        <hr class="mt-2">
-                                                        <div class="row">
-                                                            <div class="col-md-6 mb-3">
-                                                                <label for="visitTypeModal_add_{{ appointment.id }}" class="form-label">Visit Type</label>
-                                                                <input type="text" class="form-control" id="visitTypeModal_add_{{ appointment.id }}" name="visit_type" placeholder="e.g., Follow-up">
-                                                            </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label for="testDoneModal_add_{{ appointment.id }}" class="form-label">Test Done</label>
-                                                                <input type="text" class="form-control" id="testDoneModal_add_{{ appointment.id }}" name="tests_done" placeholder="e.g., ECG">
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <h6 class="text-primary mt-3">DIAGNOSIS & PRESCRIPTION</h6>
-                                                        <hr class="mt-2">
-                                                        <div class="mb-3">
-                                                            <label for="diagnosisModal_add_{{ appointment.id }}" class="form-label">Diagnosis</label>
-                                                            <textarea class="form-control" id="diagnosisModal_add_{{ appointment.id }}" name="diagnosis" rows="3"></textarea>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="prescriptionModal_add_{{ appointment.id }}" class="form-label">Prescription Notes</label>
-                                                            <textarea class="form-control" id="prescriptionModal_add_{{ appointment.id }}" name="prescription" rows="2"></textarea>
-                                                        </div>
-
-                                                        <div id="medicines-section-modal">
-                                                            <div class="d-flex justify-content-between align-items-center mt-4">
-                                                                <h6 class="text-primary mb-0">MEDICINES</h6>
-                                                                
-                                                            </div>
-                                                            <hr class="mt-2">
-                                                            <div class="medicines-list-modal">
-                                                                <!-- Initial empty medicine row -->
-                                                                <div class="row medicine-row align-items-center mb-2">
-                                                                    <div class="col-md-5">
-                                                                        <input type="text" class="form-control" name="medicine_name" placeholder="Medicine Name">
-                                                                    </div>
-                                                                    <div class="col-md-5">
-                                                                        <input type="text" class="form-control" name="dosage" placeholder="Dosage (e.g., 1-0-1)">
-                                                                    </div>
-                                                                   
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="mt-3">
-                                                            <label class="form-label text-primary fw-semibold">ATTACH LAB / SCAN FILES (PDF, images, doc)</label>
-                                                            <input type="file" class="form-control" name="report_file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.txt">
-                                                            <small class="text-muted">Max 10 MB per file.</small>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-success">
-                                                            <i class="bi bi-check-circle-fill me-1"></i> Save History
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
-                    </div>
-                </div>
-
-                <!-- Assigned Patients (Past / Completed / Cancelled) -->
-                <div class="card mb-4" >
-
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Assigned Patients</h5>
-                        <span class="badge bg-info rounded-pill">{{ t_done_appt }} Checked</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <input type="text" id="HMSSearchInput" class="form-control mb-2" placeholder="Search patient or date...">
-                            <table class="table table-hover align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Sr. No</th>
-                                        <th>Patient Name</th>
-                                        <th>Date & Time Assigned</th>
-                                        <th>Update Report</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="HMSTable">
-
-                               
-                                {% for appointment in appointments if appointment.status != 'booked' %}
-                                    
-                                    <tr class="{% if loop.index > 6 %}table-row-hidden{% endif %}">
-                                        <td>{{ loop.index }}</td>
-                                        <td>{{ appointment.patient.user.full_name }}</td>
-                                        <td>{{ appointment.appointment_datetime }}</td>
-                                        {% if appointment.status.lower() == 'completed' %}
-                                            <td>
-                                                <!-- UPDATE REPORT (PREFILL IF HISTORY EXISTS) -->
-                                                <button class="btn btn-sm btn-info"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#updateHistoryModal_{{ appointment.id }}">
-                                                    <i class="bi bi-pencil-square"></i> Update
-                                                </button>
-                                            </td>
-                                        {% else %}
-                                            <td>
-                                                <!-- UPDATE REPORT (PREFILL IF HISTORY EXISTS) -->
-                                                <button class="btn btn-sm btn-info"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#updateHistoryModal_{{ appointment.id }}" disabled>
-                                                    <i class="bi bi-pencil-square"></i> Update
-                                                </button>
-                                            </td>
-                                        {% endif %}
-
-                                        <td>
-                                            <span class="badge bg-danger">{{ appointment.status }}</span>
-                                        </td>
-                                    </tr>
-                                    
-                                    <!-- UPDATE HISTORY MODAL (for this past appointment) -->
-                                    <div class="modal fade" id="updateHistoryModal_{{ appointment.id }}" tabindex="-1" aria-labelledby="updateHistoryLabel_{{ appointment.id }}" aria-hidden="true">
-                                        <div class="modal-dialog modal-xl modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="updateHistoryLabel_{{ appointment.id }}">Update Patient History</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST" enctype="multipart/form-data">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <div class="modal-body">
-                                                        <div class="patient-info mb-4 p-3 bg-light rounded border">
-                                                            <h6 class="mb-1">
-                                                                <strong>Patient Name: </strong>{{ appointment.patient.user.full_name }}
-                                                            </h6>
-                                                            <p class="text-muted mb-0">
-                                                                <strong>Department: </strong>{{ current_user.doctor.specialization }}
-                                                            </p>
-                                                        </div>
-                                                        
-                                                        <h6 class="text-primary">VISIT DETAILS</h6>
-                                                        <hr class="mt-2">
-                                                        <div class="row">
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label">Visit Type</label>
-                                                                <input type="text" class="form-control" name="visit_type"
-                                                                       value="{{ appointment.history.visit_type if appointment.history else '' }}"
-                                                                       placeholder="e.g., Follow-up">
-                                                            </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label">Test Done</label>
-                                                                <input type="text" class="form-control" name="tests_done"
-                                                                       value="{{ appointment.history.tests_done if appointment.history else '' }}"
-                                                                       placeholder="e.g., ECG">
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <h6 class="text-primary mt-3">DIAGNOSIS & PRESCRIPTION</h6>
-                                                        <hr class="mt-2">
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Diagnosis</label>
-                                                            <textarea class="form-control" name="diagnosis" rows="3">{{ appointment.history.diagnosis if appointment.history else '' }}</textarea>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Prescription Notes</label>
-                                                            <textarea class="form-control" name="prescription" rows="2">{{ appointment.history.prescription_notes if appointment.history else '' }}</textarea>
-                                                        </div>
-
-                                                        <div id="medicines-section-modal">
-                                                            <div class="d-flex justify-content-between align-items-center mt-4">
-                                                                <h6 class="text-primary mb-0">MEDICINES</h6>
-                                                            </div>
-                                                            <hr class="mt-2">
-
-                                                            <div class="medicines-list-modal"> 
-
-                                                                
-                                                                
-                                                                    <!-- At least one empty row if no medicine saved -->
-                                                                    <div class="row medicine-row align-items-center mb-2">
-                                                                        <div class="col-md-5">
-
-                                                                            <input type="text" class="form-control" name="medicine_name" placeholder="'Medicine name">
-                                                                        </div>
-                                                                        <div class="col-md-5">
-                                                                            <input type="text" class="form-control" name="dosage" placeholder="Dosage (e.g., 1-0-1)">
-
-                                                                        </div>
-                                                                       
-</div
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="mt-3">
-                                                            <label class="form-label text-primary fw-semibold">ATTACH LAB / SCAN FILES (PDF, images, doc)</label>
-                                                            <input type="file" class="form-control" name="report_file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.txt">
-                                                            <small class="text-muted">Max 10 MB per file.</small>
-                                                            {% if appointment.report_files %}
-                                                            <div class="mt-2">
-                                                                <small class="text-muted">Existing files:</small>
-                                                                {% for rf in appointment.report_files %}
-                                                                <div class="d-flex align-items-center gap-2 mt-1">
-                                                                    <a href="{{ url_for('static', filename='uploads/reports/' + rf.filename) }}" target="_blank" class="small"><i class="bi bi-paperclip"></i> {{ rf.original_name }}</a>
-                                                                    <button type="button" class="btn btn-link text-danger p-0 small" onclick="deleteReportFile({{ rf.id }}, this)"><i class="bi bi-trash"></i></button>
-                                                                </div>
-                                                                {% endfor %}
-                                                            </div>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-success">
-                                                            <i class="bi bi-check-circle-fill me-1"></i> Save History
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                   
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
-
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer mt-4 text-center text-muted">
-                © 2025 Hospital Management System | HMS Portal
             </div>
         </div>
     </div>
+    <div class="col-md-4 reveal">
+        <div class="stat-card stat-completed">
+            <div class="card-body">
+                <div class="icon icon-pulse"><i class="bi bi-check2-circle"></i></div>
+                <div>
+                    <h5 class="card-title">Completed</h5>
+                    <p class="card-text stat-num" data-count="{{ t_done_appt }}">{{ t_done_appt }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 reveal">
+        <div class="stat-card stat-patients">
+            <div class="card-body">
+                <div class="icon icon-pulse"><i class="bi bi-people"></i></div>
+                <div>
+                    <h5 class="card-title">Assigned Patients</h5>
+                    <p class="card-text stat-num" data-count="{{ t_done_appt }}">{{ t_done_appt }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../static/js/dyanamic.js"></script>
-    <script>
-        function deleteReportFile(fileId, btn) {
-            if (!confirm('Delete this file?')) return;
-            fetch('/report_file/delete/' + fileId, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
-            }).then(function (r) {
-                if (r.ok) {
-                    btn.closest('div').remove();
-                } else {
-                    alert('Failed to delete file.');
+<!-- Upcoming Appointments -->
+<div class="card mb-4 reveal">
+    <div class="card-header">
+        <h5><i class="bi bi-calendar-event me-2" style="color:var(--primary);"></i>Upcoming Appointments</h5>
+        <span class="badge badge-primary">{{ t_upcomming_appt }} new</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient Name</th>
+                    <th>Gender</th>
+                    <th>Date &amp; Time</th>
+                    <th>Add Report</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments if appointment.status == 'booked' %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td class="fw-semibold">{{ appointment.patient.user.full_name }}</td>
+                    <td>{{ appointment.patient.user.gender }}</td>
+                    <td>{{ appointment.appointment_datetime.strftime('%d-%m-%Y %H:%M') if appointment.appointment_datetime else '—' }}</td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addHistoryModal_{{ appointment.id }}">
+                            <i class="bi bi-pencil-square"></i> Add report
+                        </button>
+                    </td>
+                    <td class="text-end actions-cell">
+                        <a href="{{ url_for('main.update_appointment_status', appointment_id=appointment.id, new_status='Completed') }}"
+                           class="btn btn-success btn-sm"><i class="bi bi-check2-circle"></i> Complete</a>
+                        <a href="{{ url_for('main.update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}"
+                           class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Cancel</a>
+                        <a href="{{ url_for('main.chat_room', appointment_id=appointment.id) }}" class="btn btn-outline btn-sm"><i class="bi bi-chat-dots"></i></a>
+                        <a href="{{ url_for('main.video_room', appointment_id=appointment.id) }}" class="btn btn-outline btn-sm" target="_blank"><i class="bi bi-camera-video"></i></a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><i class="bi bi-calendar-check"></i></div><h5>No upcoming appointments</h5><p>When patients book with you, they'll appear here.</p></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Assigned Patients -->
+<div class="card mb-4 reveal">
+    <div class="card-header">
+        <h5><i class="bi bi-people me-2" style="color:var(--primary);"></i>Assigned Patients</h5>
+        <span class="badge badge-info">{{ t_done_appt }} checked</span>
+    </div>
+    <div class="card-body pb-3">
+        <input type="text" id="HMSSearchInput" class="form-control mb-2" placeholder="Search patient or date...">
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient Name</th>
+                    <th>Date &amp; Time</th>
+                    <th>Update Report</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments if appointment.status != 'booked' %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td class="fw-semibold">{{ appointment.patient.user.full_name }}</td>
+                    <td>{{ appointment.appointment_datetime.strftime('%d-%m-%Y %H:%M') if appointment.appointment_datetime else '—' }}</td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#updateHistoryModal_{{ appointment.id }}"
+                                {{ 'disabled' if appointment.status.lower() != 'completed' }}>
+                            <i class="bi bi-pencil-square"></i> Update
+                        </button>
+                    </td>
+                    <td>
+                        {% if appointment.status.lower() == 'completed' %}
+                        <span class="badge badge-success">Completed</span>
+                        {% elif appointment.status.lower() == 'cancelled' %}
+                        <span class="badge badge-danger">Cancelled</span>
+                        {% else %}
+                        <span class="badge badge-info">Booked</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5"><div class="empty-state"><div class="empty-icon"><i class="bi bi-people"></i></div><h5>No patients yet</h5><p>Completed appointments will appear here.</p></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== ADD HISTORY MODALS ===== -->
+{% for appointment in appointments if appointment.status == 'booked' %}
+<div class="modal fade" id="addHistoryModal_{{ appointment.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Patient History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded mb-4" style="background:var(--surface-2);">
+                        <span class="avatar avatar-lg">{{ appointment.patient.user.full_name[:1] }}</span>
+                        <div>
+                            <h6 class="mb-1 fw-semibold">{{ appointment.patient.user.full_name }}</h6>
+                            <small class="text-muted">{{ current_user.doctor.specialization }} · {{ appointment.appointment_datetime.strftime('%d %b %Y') if appointment.appointment_datetime else '' }}</small>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2" style="color:var(--primary);"><i class="bi bi-clipboard2-pulse me-2"></i>Visit Details</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Visit Type</label>
+                            <input type="text" class="form-control" name="visit_type" placeholder="e.g., Follow-up">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Test Done</label>
+                            <input type="text" class="form-control" name="tests_done" placeholder="e.g., ECG">
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2" style="color:var(--primary);"><i class="bi bi-journal-medical me-2"></i>Diagnosis &amp; Prescription</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Diagnosis</label>
+                        <textarea class="form-control" name="diagnosis" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prescription Notes</label>
+                        <textarea class="form-control" name="prescription" rows="2"></textarea>
+                    </div>
+
+                    <h6 class="fw-bold mb-2" style="color:var(--primary);"><i class="bi bi-capsule me-2"></i>Medicines</h6>
+                    <div class="medicine-row row g-2 align-items-center mb-2">
+                        <div class="col-md-5"><input type="text" class="form-control" name="medicine_name" placeholder="Medicine Name"></div>
+                        <div class="col-md-5"><input type="text" class="form-control" name="dosage" placeholder="Dosage (e.g., 1-0-1)"></div>
+                        <div class="col-md-2"><button type="button" class="btn btn-outline btn-sm add-med-row"><i class="bi bi-plus-lg"></i> Add</button></div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold">Attach Lab / Scan Files (PDF, images, doc)</label>
+                        <input type="file" class="form-control" name="report_file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.txt">
+                        <small class="form-text">Max 10 MB per file.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle-fill"></i> Save History</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- ===== UPDATE HISTORY MODALS ===== -->
+{% for appointment in appointments if appointment.status != 'booked' %}
+<div class="modal fade" id="updateHistoryModal_{{ appointment.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Patient History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded mb-4" style="background:var(--surface-2);">
+                        <span class="avatar avatar-lg">{{ appointment.patient.user.full_name[:1] }}</span>
+                        <div>
+                            <h6 class="mb-1 fw-semibold">{{ appointment.patient.user.full_name }}</h6>
+                            <small class="text-muted">{{ current_user.doctor.specialization }} · {{ appointment.appointment_datetime.strftime('%d %b %Y') if appointment.appointment_datetime else '' }}</small>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2" style="color:var(--primary);"><i class="bi bi-clipboard2-pulse me-2"></i>Visit Details</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Visit Type</label>
+                            <input type="text" class="form-control" name="visit_type" value="{{ appointment.history.visit_type if appointment.history else '' }}" placeholder="e.g., Follow-up">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Test Done</label>
+                            <input type="text" class="form-control" name="tests_done" value="{{ appointment.history.tests_done if appointment.history else '' }}" placeholder="e.g., ECG">
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-2" style="color:var(--primary);"><i class="bi bi-journal-medical me-2"></i>Diagnosis &amp; Prescription</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Diagnosis</label>
+                        <textarea class="form-control" name="diagnosis" rows="3">{{ appointment.history.diagnosis if appointment.history else '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prescription Notes</label>
+                        <textarea class="form-control" name="prescription" rows="2">{{ appointment.history.prescription_notes if appointment.history else '' }}</textarea>
+                    </div>
+
+                    <h6 class="fw-bold mb-2" style="color:var(--primary);"><i class="bi bi-capsule me-2"></i>Medicines</h6>
+                    {% if appointment.history and appointment.history.medicines %}
+                        {% for med in appointment.history.medicines %}
+                        <div class="medicine-row row g-2 align-items-center mb-2">
+                            <div class="col-md-5"><input type="text" class="form-control" name="medicine_name" value="{{ med.medicine_name }}"></div>
+                            <div class="col-md-5"><input type="text" class="form-control" name="dosage" value="{{ med.dosage }}"></div>
+                            <div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-med-row"><i class="bi bi-dash"></i></button></div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="medicine-row row g-2 align-items-center mb-2">
+                            <div class="col-md-5"><input type="text" class="form-control" name="medicine_name" placeholder="Medicine Name"></div>
+                            <div class="col-md-5"><input type="text" class="form-control" name="dosage" placeholder="Dosage (e.g., 1-0-1)"></div>
+                            <div class="col-md-2"><button type="button" class="btn btn-outline btn-sm add-med-row"><i class="bi bi-plus-lg"></i> Add</button></div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold">Attach Lab / Scan Files (PDF, images, doc)</label>
+                        <input type="file" class="form-control" name="report_file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.txt">
+                        <small class="form-text">Max 10 MB per file.</small>
+                        {% if appointment.report_files %}
+                        <div class="mt-2">
+                            <small class="text-muted">Existing files:</small>
+                            {% for rf in appointment.report_files %}
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <a href="{{ url_for('static', filename='uploads/reports/' + rf.filename) }}" target="_blank" class="small"><i class="bi bi-paperclip"></i> {{ rf.original_name }}</a>
+                                <button type="button" class="btn btn-link text-danger p-0 small" onclick="deleteReportFile({{ rf.id }}, this)"><i class="bi bi-trash"></i></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle-fill"></i> Save History</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('add-med-row')) {
+            var row = e.target.closest('.medicine-row');
+            var clone = row.cloneNode(true);
+            clone.querySelectorAll('input').forEach(function (i) { i.value = ''; });
+            clone.querySelector('.add-med-row').classList.remove('add-med-row');
+            clone.querySelector('.add-med-row') ? null : (function () {
+                var b = clone.querySelector('.remove-med-row');
+                if (!b) {
+                    b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'btn btn-outline-danger btn-sm remove-med-row';
+                    b.innerHTML = '<i class="bi bi-dash"></i>';
+                    b.onclick = function () { b.closest('.medicine-row').remove(); };
+                    clone.querySelector('.col-md-2').appendChild(b);
                 }
-            }).catch(function () { alert('Failed to delete file.'); });
+            })();
+            row.after(clone);
         }
-    </script>
+        if (e.target.classList.contains('remove-med-row')) {
+            e.target.closest('.medicine-row').remove();
+        }
+    });
 
-</body>
-</html>
+    function deleteReportFile(fileId, btn) {
+        if (!confirm('Delete this file?')) return;
+        fetch('/report_file/delete/' + fileId, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+        }).then(function (r) {
+            if (r.ok) btn.closest('div').remove();
+            else alert('Failed to delete file.');
+        }).catch(function () { alert('Failed to delete file.'); });
+    }
+
+    // Client-side search on assigned patients table
+    var searchInput = document.getElementById('HMSSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function () {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('#HMSTable tbody tr, .table tbody tr').forEach(function (tr) {
+                tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    }
+</script>
+{% endblock %}

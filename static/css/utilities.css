@@ -1,0 +1,116 @@
+/* ==========================================================================
+   HMS DESIGN SYSTEM — UTILITIES
+   ========================================================================== */
+
+/* ---------- Spacing helpers ---------- */
+.m-0 { margin: 0 !important; } .mt-0 { margin-top: 0 !important; } .mb-0 { margin-bottom: 0 !important; }
+.mt-1 { margin-top: var(--space-1) !important; } .mb-1 { margin-bottom: var(--space-1) !important; }
+.mt-2 { margin-top: var(--space-2) !important; } .mb-2 { margin-bottom: var(--space-2) !important; }
+.mt-3 { margin-top: var(--space-3) !important; } .mb-3 { margin-bottom: var(--space-3) !important; }
+.mt-4 { margin-top: var(--space-4) !important; } .mb-4 { margin-bottom: var(--space-4) !important; }
+.mt-5 { margin-top: var(--space-5) !important; } .mb-5 { margin-bottom: var(--space-5) !important; }
+.mt-6 { margin-top: var(--space-6) !important; } .mb-6 { margin-bottom: var(--space-6) !important; }
+.mt-8 { margin-top: var(--space-8) !important; } .mb-8 { margin-bottom: var(--space-8) !important; }
+.my-2 { margin-top: var(--space-2) !important; margin-bottom: var(--space-2) !important; }
+.my-4 { margin-top: var(--space-4) !important; margin-bottom: var(--space-4) !important; }
+.my-6 { margin-top: var(--space-6) !important; margin-bottom: var(--space-6) !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+.p-0 { padding: 0 !important; }
+.p-2 { padding: var(--space-2) !important; }
+.p-3 { padding: var(--space-3) !important; }
+.p-4 { padding: var(--space-4) !important; }
+.p-5 { padding: var(--space-5) !important; }
+.p-6 { padding: var(--space-6) !important; }
+.px-2 { padding-left: var(--space-2) !important; padding-right: var(--space-2) !important; }
+.px-3 { padding-left: var(--space-3) !important; padding-right: var(--space-3) !important; }
+.px-4 { padding-left: var(--space-4) !important; padding-right: var(--space-4) !important; }
+.px-6 { padding-left: var(--space-6) !important; padding-right: var(--space-6) !important; }
+.py-2 { padding-top: var(--space-2) !important; padding-bottom: var(--space-2) !important; }
+.py-3 { padding-top: var(--space-3) !important; padding-bottom: var(--space-3) !important; }
+.py-4 { padding-top: var(--space-4) !important; padding-bottom: var(--space-4) !important; }
+.py-6 { padding-top: var(--space-6) !important; padding-bottom: var(--space-6) !important; }
+
+/* ---------- Flex / grid ---------- */
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-grid { display: grid !important; }
+.align-items-center { align-items: center !important; }
+.align-items-start { align-items: flex-start !important; }
+.align-items-end { align-items: flex-end !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-grow-1 { flex-grow: 1 !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+.gap-1 { gap: var(--space-1) !important; }
+.gap-2 { gap: var(--space-2) !important; }
+.gap-3 { gap: var(--space-3) !important; }
+.gap-4 { gap: var(--space-4) !important; }
+.ms-auto { margin-left: auto !important; }
+.me-auto { margin-right: auto !important; }
+.text-center { text-align: center !important; }
+.text-end { text-align: right !important; }
+.text-start { text-align: left !important; }
+
+/* ---------- Text helpers ---------- */
+.text-muted { color: var(--text-muted) !important; }
+.text-subtle { color: var(--text-subtle) !important; }
+.text-primary { color: var(--primary-600) !important; }
+.text-success { color: var(--success-600) !important; }
+.text-danger { color: var(--danger-600) !important; }
+.text-warning { color: var(--warning-600) !important; }
+.text-info { color: var(--info) !important; }
+.text-white { color: #fff !important; }
+.fw-normal { font-weight: 400 !important; }
+.fw-medium { font-weight: 500 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.fw-bold { font-weight: 700 !important; }
+.fs-sm { font-size: var(--text-sm) !important; }
+.fs-xs { font-size: var(--text-xs) !important; }
+.fs-lg { font-size: var(--text-lg) !important; }
+.text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.text-decoration-none { text-decoration: none !important; }
+
+/* ---------- Backgrounds ---------- */
+.bg-surface { background: var(--surface) !important; }
+.bg-surface-2 { background: var(--surface-2) !important; }
+.bg-primary-soft { background: var(--primary-050) !important; }
+.bg-success-soft { background: var(--success-050) !important; }
+.bg-danger-soft { background: var(--danger-050) !important; }
+.bg-warning-soft { background: var(--warning-050) !important; }
+.bg-transparent { background: transparent !important; }
+
+/* ---------- Borders & radius ---------- */
+.rounded { border-radius: var(--radius-md) !important; }
+.rounded-lg { border-radius: var(--radius-lg) !important; }
+.rounded-pill { border-radius: var(--radius-full) !important; }
+.border { border: 1px solid var(--border) !important; }
+.border-0 { border: 0 !important; }
+
+/* ---------- Shadows ---------- */
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow { box-shadow: var(--shadow-md) !important; }
+.shadow-lg { box-shadow: var(--shadow-lg) !important; }
+
+/* ---------- Width helpers ---------- */
+.w-100 { width: 100% !important; }
+.h-100 { height: 100% !important; }
+.vh-100 { min-height: 100vh !important; }
+
+/* ---------- Position ---------- */
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.position-sticky { position: sticky !important; }
+.position-fixed { position: fixed !important; }
+
+/* ---------- Misc ---------- */
+.cursor-pointer { cursor: pointer !important; }
+.overflow-hidden { overflow: hidden !important; }
+.overflow-x-auto { overflow-x: auto !important; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.nowrap { white-space: nowrap !important; }

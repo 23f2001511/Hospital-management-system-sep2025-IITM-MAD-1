@@ -6,6 +6,56 @@ before was removed; everything below was added or fixed.
 
 ---
 
+## Doctor Deletion, Capacity Limits & Booking Slips
+
+### Feature 1 — Safe Doctor Deletion (soft-delete + auto-reassignment)
+- **Root-cause crash fix**: deleting a doctor no longer crashes with `NOT NULL constraint failed: video_room.appointment_id`. Cascade relationships are now explicit — `VideoRoom`, `DoctorRating`, `ChatMessage`, `PatientHistory`, and `ReportFile` all use `cascade="all, delete-orphan"` on their appointment relationship, so deleting/cleaning an appointment correctly deletes its children instead of trying to null NOT NULL FKs.
+- **Soft-delete**: `User.is_deleted` field added. Deleting a doctor sets `doctor.is_active=False` + `user.is_deleted=True` (the row is never removed). The doctor disappears from all listings, search, and booking pages, and can no longer log in.
+- **Patient data is never deleted**: past/completed/cancelled appointments, medical history, prescriptions, chat, and video records remain intact and still link to the (now-inactive) doctor.
+- **Automatic reassignment**: on delete, every future booked appointment is either:
+  - reassigned to another active doctor in the same department (with availability & capacity at that time), flagged with `reassigned_from_doctor_id`, `reassigned_at`; **or**
+  - flagged `needs_reassignment=True` for manual admin action.
+- **Patient notification**: affected patients get an in-app notification (and an email if SMTP is configured) for both reassigned and needs-rescheduling cases.
+- **Admin confirmation screen** (`/admin/delete_doctor/<id>`): shows upcoming count, how many will auto-reassign vs. need attention, a per-appointment breakdown, and requires an explicit confirm — no more accidental single-click deletion.
+- **Manual reassignment UI**: appointments flagged `needs_reassignment` appear in a warning card on the admin dashboard with a per-appointment doctor dropdown and a POST route (`/admin/appointment/<id>/reassign`).
+
+### Feature 2 — Daily Appointment Capacity per Doctor
+- `Doctor.max_appointments_per_day` field (default 20), editable per-doctor from the admin Edit Doctor page.
+- Enforced at booking time: non-cancelled appointments for a doctor+date are counted; once the cap is reached the booking POST is rejected with a message naming the **next available day**.
+- Calendar picker is capacity-aware: full days render with a red strikethrough and are not selectable; clicking one shows a toast; the slots panel shows a `booked/max` badge; an info banner on the booking page highlights the next day with open slots.
+- Load visibility: the admin doctors table shows a `booked/max` progress bar per doctor; the doctor's own dashboard shows a "X/Y booked today" progress bar.
+
+### Feature 3 — Appointment Booking Confirmation Slip
+- After a successful booking the patient is taken straight to a **ticket-style confirmation slip** page (`/booking/<id>/slip`) with animated entrance, torn-perforation design, doctor photo/name/dept, date & time, patient name, `HMS-XXXXX` reference number, "Confirmed" status, and a "please arrive 10 minutes early" note.
+- **Downloadable PDF** at `/booking/<id>/slip_pdf` (fpdf2, styled letterhead slip).
+- **Persistent dashboard slip**: the patient dashboard shows a compact "Next Upcoming Appointment" slip card with a **"Updated" badge** when the appointment was reassigned or rescheduled, and a View Slip button.
+- Reassignment automatically refreshes the slip (new doctor/time shown) and marks it updated.
+
+### Database changes (run once: `python migrate_db.py`)
+| Table | New column |
+|---|---|
+| `user` | `is_deleted` BOOLEAN DEFAULT 0 |
+| `doctor` | `max_appointments_per_day` INTEGER DEFAULT 20 |
+| `appointment` | `reassigned_from_doctor_id` INTEGER → doctor(id) |
+| `appointment` | `needs_reassignment` BOOLEAN DEFAULT 0 |
+| `appointment` | `reassigned_at` DATETIME |
+
+Files touched: `back_app/models.py`, `back_app/routes.py`, `static/js/calendar-picker.js`, `static/css/calendar.css`, `static/css/components.css`, `templates/patient/booking_slip.html`, `templates/patient/dashboard.html`, `templates/patient/booking_slip.html`, `templates/admin/confirm_delete_doctor.html`, `templates/admin/dashboard.html`, `templates/admin/all_doctors.html`, `templates/admin/edit_doctor.html`, `templates/admin/doctor_profile.html`, `templates/doctor/dashboard.html`, `templates/auth/doct_availability.html`, new `migrate_db.py`.
+
+---
+
+## Doctor Onboarding — Auto-Generated Credentials
+
+- **Admin creates a doctor with only 3 fields**: full name, email, and department/specialization (the form no longer demands phone/age/gender/qualification/bio upfront).
+- **Auto-generated temporary password**: a random password (`Doc@xxxxxxxx`) is created and hashed with Werkzeug — the old hardcoded `Doctor@2024` is gone.
+- **Credentials emailed automatically** to the doctor's address via Flask-Mail using a styled welcome email. If SMTP is not configured, the full email content (including the password) is printed to the server console so the flow still works in development.
+- **The generated password is also flashed** to the admin after creation, so it can be shared if email is unavailable.
+- **Doctor completes their profile after first login**: Profile Settings now lets doctors update phone number, age, gender, specialization, qualification, experience, and bio (placeholders like `0000000000` / `Not specified` are shown empty and get replaced).
+- **Password change flow** remains available under Profile Settings → Security.
+- **Bug fixed**: the doctor profile-update route had a `experiencer_years` typo and wrongly set `full_name` on the `Doctor` model — both corrected so profile saves actually persist.
+
+---
+
 ## Phase 1 — Foundation, Security, and Doctor–Patient Interaction
 
 ### Security hardening

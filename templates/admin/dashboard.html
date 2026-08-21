@@ -1,416 +1,323 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | HMS Portal</title>
-    
-    <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../static/css/admin/admin.css" />
-    <link rel="stylesheet" href="../../static/css/style.css" />
-    
-    <!-- === EMBEDDED ADMIN STYLESHEET === -->
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard | HMS Portal{% endblock %}
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.admin_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Overview</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<!-- Welcome banner -->
+<div class="welcome-banner reveal">
+    <div class="position-relative" style="z-index:2;">
+        <h3>Welcome back, {{ current_user.full_name }} 👋</h3>
+        <p>Here's what's happening across the hospital today.</p>
+    </div>
+</div>
 
-</head>
-<body>
-    <div class="wrapper">
-        <!-- Sidebar -->
-        <nav id="sidebar">
-            <div class="sidebar-header d-flex align-items-center">
-                <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                    <!-- Note: Update image path as needed -->
-                    <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
-                    <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
-                </a>
-            </div>
-
-            <ul class="list-unstyled components">
-                <!-- Note: Add your server-side routing links (e.g., url_for()) -->
-                <li class="active">
-                    <a href="{{url_for('main.admin_dashboard')}}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
-                </li>
-                <li>
-                    <a href="{{url_for('main.all_doctors')}}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a>
-                </li>
-                <li>
-                    <a href="{{url_for('main.all_patients')}}"><i class="bi bi-people-fill me-2"></i>Patients</a>
-                </li>
-                <li>
-                    <a href="{{url_for('main.all_appointments')}}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- Page Content -->
-        <div id="content">
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }} mt-2" style="font-weight:bold;">
-                    {{ message }}
+<!-- Stat cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3 reveal">
+        <div class="stat-card stat-doctors">
+            <div class="card-body">
+                <div class="icon icon-pulse"><i class="bi bi-person-badge"></i></div>
+                <div>
+                    <h5 class="card-title">Total Doctors</h5>
+                    <p class="card-text stat-num" data-count="{{ total_doctors }}">{{ total_doctors }}</p>
                 </div>
-                {% endfor %}
-            {% endif %}
-            {% endwith %}
-            <!-- Top Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
-                <div class="container-fluid">
-                    <!-- Title -->
-                    <h4 class="navbar-title mb-0">Welcome, Admin</h4> <!-- Example: {{ user.full_name }} -->
-                    
-                    <div class="d-flex align-items-center ms-auto">
-                        <!-- Search Form -->
-                        <form class="d-flex me-3 header-search-form" onsubmit="return false;">
-                            <!-- ID added for JavaScript search functionality -->
-                            <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search" id="globalSearchInput">
-                            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
-                        </form>
-                        {% include 'partials/notification_bell.html' %}
-                        <!-- User Dropdown -->
-                        <ul class="navbar-nav">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-1 fs-4"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item text-danger" href="{{url_for('main.logout')}}">Logout</a></li> 
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Main Content -->
-            <div class="main-content">
-
-                <!-- Stats Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <div class="card stat-card stat-doctors">
-                            <div class="card-body">
-                                <div class="icon icon-pulse"><i class="bi bi-person-badge-fill"></i></div>
-                                <div>
-                                    <h5 class="card-title">Total Doctors</h5>
-                                    <p class="card-text stat-num" data-count="{{total_doctors}}">{{total_doctors}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card stat-card stat-patients">
-                            <div class="card-body">
-                                <div class="icon icon-pulse"><i class="bi bi-people-fill"></i></div>
-                                <div>
-                                    <h5 class="card-title">Total Patients</h5>
-                                    <p class="card-text stat-num" data-count="{{total_patients}}">{{total_patients}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card stat-card stat-appointments">
-                            <div class="card-body">
-                                <div class="icon icon-pulse"><i class="bi bi-calendar-check-fill"></i></div>
-                                <div>
-                                    <h5 class="card-title">Appointments</h5>
-                                    <p class="card-text stat-num" data-count="{{total_appointments}}">{{total_appointments}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Analytics Charts -->
-                <div class="row mb-4">
-                    <div class="col-lg-8 mb-3">
-                        <div class="card content-panel h-100">
-                            <div class="card-header panel-header">
-                                <h5 class="card-title mb-0"><i class="bi bi-graph-up me-2"></i>Appointments per Day (Last 14 Days)</h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="appointmentsChart" height="120"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 mb-3">
-                        <div class="card content-panel h-100">
-                            <div class="card-header panel-header">
-                                <h5 class="card-title mb-0"><i class="bi bi-pie-chart me-2"></i>Appointment Status</h5>
-                            </div>
-                            <div class="card-body d-flex align-items-center justify-content-center">
-                                <canvas id="statusChart" height="150"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mb-4">
-                    <div class="col-lg-6 mb-3">
-                        <div class="card content-panel h-100">
-                            <div class="card-header panel-header">
-                                <h5 class="card-title mb-0"><i class="bi bi-people-fill me-2"></i>Patients by Department</h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="deptChart" height="150"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 mb-3">
-                        <div class="card content-panel h-100">
-                            <div class="card-header panel-header">
-                                <h5 class="card-title mb-0"><i class="bi bi-person-badge-fill me-2"></i>Doctor Workload</h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="workloadChart" height="150"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Registered Doctors -->
-                <div class="card content-panel mb-4" id="HMSTable">
-                    <div class="card-header panel-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Registered Doctors</h5>
-                        <!-- Example: onclick="location.href='{{ url_for('main.add_doctor') }}'" -->
-                        <button class="btn btn-sm btn-primary add-btn"  onclick="window.location.href='{{url_for('main.add_doctor')}}'"><i class="bi bi-plus-circle me-1"></i>Add Doctor</button> 
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Sr No.</th>
-                                        <th>Doctor Name</th>
-                                        <th>Department</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody >
-                                  {% for doctor in doctors %}
-                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
-                                        <td>{{ loop.index }}</td>
-                                        <td>{{ doctor.user.full_name }}</td>
-                                        <td>{{ doctor.department.name }}</td>
-                                        <td class="text-center actions-cell">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('main.view_doctor', doctor_id=doctor.id) }}'">View Profile <i class="bi bi-arrow-right-short"></i></button>
-                                        </td>
-                                    </tr>
-                                  {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="HMSTable">See All</a>
-                    </div>
-                </div>
-                
-                <!-- Registered Patients -->
-                <div class="card content-panel mb-4" id="patients-card">
-                    <div class="card-header panel-header">
-                        <h5 class="card-title mb-0">Registered Patients</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Sr No.</th>
-                                        <th>Patient Name</th>
-                                        <th>Gender</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                  {% for patient in patients %}
-                                    <tr class="{% if loop.index > 3 %}table-row-hidden{% endif %}">
-                                        <td>{{ loop.index }}</td>
-                                        <td>{{ patient.user.full_name }}</td>
-                                        <td>{{ patient.gender }}</td>
-                                        <td class="text-center actions-cell">
-                                            <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{{ url_for('main.view_patient', patient_id=patient.id) }}'">View Details <i class="bi bi-arrow-right-short"></i></button>
-                                        </td>
-                                    </tr>
-                                  {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="patients-card">See All</a>
-                    </div>
-                </div>
-
-                <!-- Upcoming Appointments -->
-                <div class="card content-panel" id="appointments-card">
-                    <div class="card-header panel-header">
-                        <h5 class="card-title mb-0">Upcoming Appointments</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Sr No.</th>
-                                        <th>Patient Name</th>
-                                        <th>Doctor Name</th>
-                                        <th>Date&Time</th>
-                                        <th>Department</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                {% set i = 1 %}
-                                  {% for appointment in appointments %}
-                                    {% if appointment.status == "booked" %}
-                                      <tr class="{% if i > 3 %}table-row-hidden{% endif %}">
-                                          <td>{{ i }}</td>
-                                          <td>{{ appointment.patient.user.full_name }}</td>
-                                          <td>{{ appointment.doctor.user.full_name }}</td>
-                                          <td>{{ appointment.appointment_datetime.strftime('%Y-%m-%d %H:%M') }}</td>
-                                          <td>{{ appointment.doctor.specialization }}</td>
-                                          <td class="text-center actions-cell"><button class="btn btn-sm btn-outline-success"onclick="location.href='{{ url_for('main.update_appointment_status', appointment_id=appointment.id , new_status='Cancelled') }}'">Cancel</button></td>
-                                      </tr>
-                                      {% set i = i + 1 %}
-                                    {% endif %}
-                                  {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                     <div class="card-footer text-center">
-                        <a href="#" class="text-primary fw-bold text-decoration-none see-more-btn" data-target="appointments-card">See All</a>
-                    </div>
-                </div>
-
-            </div>
-            
-            <!-- Footer -->
-            <div class="footer mt-4 text-center text-muted">
-                © 2025 Hospital Management System | Admin Dashboard
             </div>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="../../static/js/dyanamic.js"></script>
+    <div class="col-md-6 col-xl-3 reveal">
+        <div class="stat-card stat-patients">
+            <div class="card-body">
+                <div class="icon icon-pulse"><i class="bi bi-people"></i></div>
+                <div>
+                    <h5 class="card-title">Total Patients</h5>
+                    <p class="card-text stat-num" data-count="{{ total_patients }}">{{ total_patients }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3 reveal">
+        <div class="stat-card stat-appointments">
+            <div class="card-body">
+                <div class="icon icon-pulse"><i class="bi bi-calendar-check"></i></div>
+                <div>
+                    <h5 class="card-title">Appointments</h5>
+                    <p class="card-text stat-num" data-count="{{ total_appointments }}">{{ total_appointments }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3 reveal">
+        <div class="stat-card stat-completed">
+            <div class="card-body">
+                <div class="icon icon-pulse"><i class="bi bi-check2-circle"></i></div>
+                <div>
+                    <h5 class="card-title">Completed</h5>
+                    <p class="card-text stat-num" data-count="{{ status_data[1] }}">{{ status_data[1] }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- === ANALYTICS CHARTS === -->
-    <script>
-        const apptLabels = {{ chart_appointments.labels | tojson }};
-        const apptData = {{ chart_appointments.data | tojson }};
-        const deptLabels = {{ chart_dept_patients.labels | tojson }};
-        const deptData = {{ chart_dept_patients.data | tojson }};
-        const workLabels = {{ chart_workload.labels | tojson }};
-        const workData = {{ chart_workload.data | tojson }};
-        const statusLabels = {{ status_labels | tojson }};
-        const statusData = {{ status_data | tojson }};
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8 reveal">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up me-2" style="color:var(--primary);"></i>Appointments per Day</h5>
+                <span class="badge badge-primary">Last 14 days</span>
+            </div>
+            <div class="card-body">
+                <canvas id="appointmentsChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 reveal">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart me-2" style="color:var(--primary);"></i>Status</h5>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center" style="min-height:220px;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-        Chart.defaults.color = '#6b7c93';
-        Chart.defaults.font.family = 'Inter, sans-serif';
+<div class="row g-4 mb-4">
+    <div class="col-lg-6 reveal">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-people me-2" style="color:var(--primary);"></i>Patients by Department</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="deptChart" height="140"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 reveal">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-person-badge me-2" style="color:var(--primary);"></i>Doctor Workload</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="workloadChart" height="140"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Appointments per day
-        new Chart(document.getElementById('appointmentsChart'), {
-            type: 'bar',
-            data: {
-                labels: apptLabels,
-                datasets: [{
-                    label: 'Appointments',
-                    data: apptData,
-                    backgroundColor: 'rgba(26,92,143,0.7)',
-                    borderRadius: 6,
-                    maxBarThickness: 28
-                }]
-            },
-            options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } } }
-        });
+<!-- Recent doctors & patients -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6 reveal">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-person-badge me-2" style="color:var(--primary);"></i>Registered Doctors</h5>
+                <a href="{{ url_for('main.add_doctor') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg"></i> Add Doctor
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Department</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors[:5] %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="avatar avatar-sm">{{ doctor.user.full_name[:1] }}</span>
+                                    <span class="fw-semibold">Dr. {{ doctor.user.full_name }}</span>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-primary">{{ doctor.department.name }}</span></td>
+                            <td class="text-end">
+                                <a href="{{ url_for('main.view_doctor', doctor_id=doctor.id) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted py-4">No doctors yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 reveal">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-people me-2" style="color:var(--primary);"></i>Registered Patients</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Gender</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients[:5] %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="avatar avatar-sm">{{ patient.user.full_name[:1] }}</span>
+                                    <span class="fw-semibold">{{ patient.user.full_name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ patient.gender }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('main.view_patient', patient_id=patient.id) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted py-4">No patients yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // Status doughnut
-        new Chart(document.getElementById('statusChart'), {
-            type: 'doughnut',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusData,
-                    backgroundColor: ['#2980bd', '#2ecc71', '#e74c3c'],
-                    borderWidth: 2
-                }]
-            },
-            options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
-        });
+<!-- Needs Reassignment (Feature 1) -->
+{% if needs_reassignment %}
+<div class="card mb-4 reveal" style="border-color:var(--warning) !important;">
+    <div class="card-header" style="background:var(--warning-050);">
+        <h5 style="color:var(--warning-600);"><i class="bi bi-exclamation-triangle me-2"></i>Appointments Needing Reassignment</h5>
+        <span class="badge badge-warning">{{ needs_reassignment | length }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Original Doctor</th>
+                    <th>Date &amp; Time</th>
+                    <th>Department</th>
+                    <th style="min-width:220px;">Reassign To</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in needs_reassignment %}
+                <tr>
+                    <td class="fw-semibold">{{ appt.patient.user.full_name }}</td>
+                    <td>Dr. {{ appt.doctor.user.full_name }}</td>
+                    <td>{{ appt.appointment_datetime.strftime('%d-%m-%Y %H:%M') }}</td>
+                    <td><span class="badge badge-primary">{{ appt.doctor.specialization }}</span></td>
+                    <td>
+                        {% if reassignment_options[appt.id] %}
+                        <form action="{{ url_for('main.admin_reassign_appointment', appointment_id=appt.id) }}" method="POST" class="d-flex gap-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <select name="doctor_id" class="form-select form-select-sm">
+                                <option value="">Select doctor...</option>
+                                {% for doc in reassignment_options[appt.id] %}
+                                <option value="{{ doc.id }}">Dr. {{ doc.user.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary flex-shrink-0"><i class="bi bi-arrow-repeat"></i></button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">No other doctor in this department.</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 
-        // Patients by department
-        new Chart(document.getElementById('deptChart'), {
-            type: 'bar',
-            data: {
-                labels: deptLabels,
-                datasets: [{
-                    label: 'Patients',
-                    data: deptData,
-                    backgroundColor: 'rgba(0,201,167,0.7)',
-                    borderRadius: 6,
-                    maxBarThickness: 40
-                }]
-            },
-            options: { indexAxis: 'y', maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } } }
-        });
+<!-- Upcoming appointments -->
+<div class="card reveal">
+    <div class="card-header">
+        <h5><i class="bi bi-calendar-event me-2" style="color:var(--primary);"></i>Upcoming Appointments</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Department</th>
+                    <th>Date &amp; Time</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set shown = namespace(n=0) %}
+                {% for appointment in appointments %}
+                {% if appointment.status == 'booked' and shown.n < 6 %}
+                {% set shown.n = shown.n + 1 %}
+                <tr>
+                    <td class="fw-semibold">{{ appointment.patient.user.full_name }}</td>
+                    <td>Dr. {{ appointment.doctor.user.full_name }}</td>
+                    <td><span class="badge badge-primary">{{ appointment.doctor.specialization }}</span></td>
+                    <td>{{ appointment.appointment_datetime.strftime('%b %d, %Y %H:%M') }}</td>
+                    <td class="text-end">
+                        <a href="{{ url_for('main.update_appointment_status', appointment_id=appointment.id, new_status='Cancelled') }}" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-lg"></i> Cancel</a>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    const apptLabels = {{ chart_appointments.labels | tojson }};
+    const apptData = {{ chart_appointments.data | tojson }};
+    const deptLabels = {{ chart_dept_patients.labels | tojson }};
+    const deptData = {{ chart_dept_patients.data | tojson }};
+    const workLabels = {{ chart_workload.labels | tojson }};
+    const workData = {{ chart_workload.data | tojson }};
+    const statusLabels = {{ status_labels | tojson }};
+    const statusData = {{ status_data | tojson }};
 
-        // Doctor workload
-        new Chart(document.getElementById('workloadChart'), {
-            type: 'bar',
-            data: {
-                labels: workLabels,
-                datasets: [{
-                    label: 'Appointments',
-                    data: workData,
-                    backgroundColor: 'rgba(243,156,18,0.75)',
-                    borderRadius: 6,
-                    maxBarThickness: 40
-                }]
-            },
-            options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } } }
-        });
-    </script>
+    Chart.defaults.color = '#64748b';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 12;
 
-    <!-- === UPDATED JAVASCRIPT === -->
-    <script>
-        // --- Search Bar Functionality ---
-        const searchInput = document.getElementById('globalSearchInput');
-        const searchForm = document.querySelector('.header-search-form');
-        const allTableBodies = document.querySelectorAll('.content-panel tbody');
+    new Chart(document.getElementById('appointmentsChart'), {
+        type: 'bar',
+        data: { labels: apptLabels, datasets: [{ label: 'Appointments', data: apptData, backgroundColor: '#2563eb', borderRadius: 6, maxBarThickness: 26 }] },
+        options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(100,116,139,0.1)' } }, x: { grid: { display: false } } } }
+    });
 
-        function filterTables() {
-            const filter = searchInput.value.toLowerCase();
-            allTableBodies.forEach(tbody => {
-                const rows = tbody.getElementsByTagName('tr');
-                for (const row of rows) {
-                    const rowText = row.textContent || row.innerText;
-                    if (rowText.toLowerCase().indexOf(filter) > -1) {
-                        row.classList.remove('search-hidden');
-                    } else {
-                        row.classList.add('search-hidden');
-                    }
-                }
-            });
-        }
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: { labels: statusLabels, datasets: [{ data: statusData, backgroundColor: ['#2563eb', '#10b981', '#ef4444'], borderWidth: 3, borderColor: 'transparent' }] },
+        options: { maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } } } }
+    });
 
-        searchInput.addEventListener('keyup', filterTables);
-        searchForm.addEventListener('submit', e => e.preventDefault());
+    new Chart(document.getElementById('deptChart'), {
+        type: 'bar',
+        data: { labels: deptLabels, datasets: [{ label: 'Patients', data: deptData, backgroundColor: '#06b6d4', borderRadius: 6, maxBarThickness: 36 }] },
+        options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(100,116,139,0.1)' } }, y: { grid: { display: false } } } }
+    });
 
-        // --- "See All" / "See Less" Toggle Functionality ---
-        
-
-        
-    </script>
-
-</body>
-</html>
-
+    new Chart(document.getElementById('workloadChart'), {
+        type: 'bar',
+        data: { labels: workLabels, datasets: [{ label: 'Appointments', data: workData, backgroundColor: '#f59e0b', borderRadius: 6, maxBarThickness: 36 }] },
+        options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(100,116,139,0.1)' } }, y: { grid: { display: false } } } }
+    });
+</script>
+{% endblock %}

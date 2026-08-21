@@ -1,240 +1,161 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Settings | HMS Portal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Link to your main CSS file -->
-    <link rel="stylesheet" href="../../static/css/style.css">
-    <link rel="stylesheet" href="../../static/css/auth/profile.css">
+{% extends 'base.html' %}
+{% block title %}Profile Settings | HMS Portal{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Profile Settings</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4 class="page-title" style="margin-top:0;"><i class="bi bi-person-gear me-2" style="color:var(--primary);"></i>Profile Settings</h4>
+    <p class="page-subtitle">Manage your personal information and security</p>
+</div>
 
-</head>
-<body>
-
-<div class="wrapper">
-    <!-- Sidebar -->
-    <nav id="sidebar">
-        <div class="sidebar-header d-flex align-items-center">
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-                <img src="../../static/img/mad1.png" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
-                <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
-            </a>
-        </div>
-        
-        <!-- Sidebar Links -->
-        <ul class="list-unstyled components">
-            {% if current_user.role.lower() == 'patient' %}
-                <li><a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-                <li><a href="{{ url_for('main.doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
-                <li><a href="{{ url_for('main.booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
-                <li class="active"><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
-            {% elif current_user.role.lower() == 'doctor' %}
-                <li><a href="{{ url_for('main.doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-                <li><a href="{{ url_for('main.manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-                <li><a href="{{ url_for('main.assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
-                <li class="active"><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
-            {% endif %}
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs border-0" id="profileTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="btn btn-ghost active me-2" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab">
+                    <i class="bi bi-person me-1"></i> Personal Information
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="btn btn-ghost" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+                    <i class="bi bi-shield-lock me-1"></i> Security
+                </button>
+            </li>
         </ul>
-    </nav>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="profileTabContent">
+            <!-- Personal info -->
+            <div class="tab-pane fade show active" id="personal-info" role="tabpanel">
+                <form method="POST" action="{{ url_for('main.update_profile') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4 mb-md-0">
+                            <div class="position-relative d-inline-block">
+                                <img src="{{ url_for('static', filename='img/' + (current_user.profile_picture if current_user.profile_picture else 'default.png')) }}"
+                                     class="rounded-circle" width="120" height="120" style="object-fit:cover;border:3px solid var(--primary);" id="profileImagePreview">
+                                <label for="profile_picture" class="btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle" style="width:36px;height:36px;cursor:pointer;">
+                                    <i class="bi bi-camera"></i>
+                                    <input type="file" class="visually-hidden" id="profile_picture" name="profile_picture" accept="image/*" onchange="previewImage(event)">
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-2">Click camera to change</small>
+                        </div>
 
-    <!-- Page Content -->
-    <div id="content">
-        <!-- Top Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light top-navbar">
-            <div class="container-fluid">
-                <h4 class="mb-0">Welcome, Dr. {{ current_user.full_name }}</h4>
-                <div class="d-flex align-items-center ms-auto">
-                    <ul class="navbar-nav">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <!-- Show current profile picture in navbar -->
-                                <img src="{{ url_for('static', filename='img/' + (current_user.profile_picture if current_user.profile_picture else 'default.png')) }}" 
-                                     alt="Profile" 
-                                     style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;" 
-                                     class="me-2" style="background-color: #0a151cff;">
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
+                        <div class="col-md-9">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" name="full_name" value="{{ current_user.full_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email address</label>
+                                    <input type="email" class="form-control" value="{{ current_user.email }}" disabled readonly>
+                                    <small class="form-text">Email cannot be changed.</small>
+                                </div>
+
+                                {% if current_user.role.lower() == 'doctor' %}
+                                <div class="col-md-6">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone_number" value="{{ current_user.phone_number if current_user.phone_number and current_user.phone_number != '0000000000' else '' }}" placeholder="9876543210">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Age</label>
+                                    <input type="number" class="form-control" name="age" value="{{ current_user.age if current_user.age else '' }}" min="1" max="120">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" name="gender">
+                                        <option value="Male" {% if current_user.gender == 'Male' %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if current_user.gender == 'Female' %}selected{% endif %}>Female</option>
+                                        <option value="Other" {% if current_user.gender == 'Other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Specialization</label>
+                                    <input type="text" class="form-control" name="specialization" value="{{ current_user.doctor.specialization if current_user.doctor else '' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Qualification</label>
+                                    <input type="text" class="form-control" name="qualification" value="{{ current_user.doctor.qualification if current_user.doctor and current_user.doctor.qualification != 'Not specified' else '' }}" placeholder="e.g., MBBS, MD">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Experience (Years)</label>
+                                    <input type="number" class="form-control" name="experience_years" value="{{ current_user.doctor.experience_years if current_user.doctor and current_user.doctor.experience_years else '' }}" min="0">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Bio</label>
+                                    <textarea class="form-control" name="bio" rows="3">{{ current_user.doctor.bio if current_user.doctor else '' }}</textarea>
+                                </div>
+                                {% endif %}
+
+                                {% if current_user.role.lower() == 'patient' %}
+                                <div class="col-md-6">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" name="date_of_birth" value="{{ current_user.patient.date_of_birth }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" name="gender">
+                                        <option value="Male" {% if current_user.patient.gender == 'Male' %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if current_user.patient.gender == 'Female' %}selected{% endif %}>Female</option>
+                                        <option value="Other" {% if current_user.patient.gender == 'Other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control" name="address" rows="3">{{ current_user.patient.address if current_user.patient else '' }}</textarea>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <hr class="my-4">
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Personal Info</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-        </nav>
 
-        <!-- Main Content (Specific to Profile Settings) -->
-        <div class="main-content">
-            <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% if messages %}
-                    {% for category, message in messages %}
-                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                      </div>
-                    {% endfor %}
-                  {% endif %}
-                {% endwith %}
-
-            <div class="card">
-                <div class="card-body">
-                    <!-- Tabs Navigation -->
-                    <ul class="nav nav-tabs mb-4" id="profileTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">
-                                <i class="bi bi-person-fill me-1"></i> Personal Information
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">
-                                <i class="bi bi-shield-lock-fill me-1"></i> Security
-                            </button>
-                        </li>
-                    </ul>
-
-                    <!-- Tab Content -->
-                    <div class="tab-content" id="profileTabContent">
-                        
-                        <!-- Personal Information Tab Pane -->
-                        <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
-                            <h5 class="mb-4">Update Your Information</h5>
-                            <!-- IMPORTANT: Added enctype for file uploads -->
-                            <form method="POST" action="{{ url_for('main.update_profile') }}" enctype="multipart/form-data">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <div class="row">
-                                    <!-- Profile Picture Section -->
-                                    <div class="col-md-3 text-center mb-4 mb-md-0">
-                                        <div class="profile-picture-container">
-                                            <img src="{{ url_for('static', filename='img/' + (current_user.profile_picture if current_user.profile_picture else 'default.jpg')) }}" 
-                                                 class="profile-picture" 
-                                                 alt="Profile Picture"
-                                                 id="profileImagePreview">
-                                            <label for="profile_picture" class="change-picture-btn" title="Change picture">
-                                                <i class="bi bi-camera-fill"></i>
-                                                <!-- File input linked to the label -->
-                                                <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/png, image/jpeg, image/jpg" onchange="previewImage(event)">
-                                            </label>
-                                        </div>
-                                        <small class="text-muted d-block mt-2">Click camera to change</small>
-                                    </div>
-
-                                    <!-- Form Fields Section -->
-                                    <div class="col-md-9">
-                                        <!-- Common Fields -->
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label for="full_name" class="form-label">Full Name</label>
-                                                <input type="text" class="form-control" id="full_name" name="full_name" value="{{ current_user.full_name }}" required>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="email" class="form-label">Email address</label>
-                                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" disabled readonly>
-                                            <small class="text-muted">Email cannot be changed.</small>
-                                        </div>
-                                        
-                                        <!-- Doctor Specific Fields -->
-                                        {% if current_user.role.lower() == 'doctor' %}
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label for="specialization" class="form-label">Specialization</label>
-                                                <input type="text" class="form-control" id="specialization" name="specialization" value="{{ current_user.doctor.specialization if current_user.doctor else '' }}">
-                                            </div>
-                                             <div class="col-md-6 mb-3">
-                                                <label for="experience_years" class="form-label">Experience (Years)</label>
-                                                <input type="number" class="form-control" id="experience_years" name="experience_years" value="{{ current_user.doctor.experience_years if current_user.doctor else '' }}">
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="bio" class="form-label">Bio (Short Introduction)</label>
-                                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ current_user.doctor.bio if current_user.doctor else '' }}</textarea>
-                                        </div>
-                                        {% endif %}
-        
-                                        <!-- Patient Specific Fields -->
-                                        {% if current_user.role.lower() == 'patient' %}
-                                         <div class="row">
-                                             <div class="col-md-6 mb-3">
-                                                <label for="date_of_birth" class="form-label">Date of Birth</label>
-                                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ current_user.patient.date_of_birth}}">
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label for="gender" class="form-label">Gender</label>
-                                                <select class="form-select" id="gender" name="gender">
-                                                    <option value="" {% if not current_user.patient or not current_user.patient.gender %}selected{% endif %}>Select Gender</option>
-                                                    <option value="Male" {% if current_user.patient and current_user.patient.gender == 'Male' %}selected{% endif %}>Male</option>
-                                                    <option value="Female" {% if current_user.patient and current_user.patient.gender == 'Female' %}selected{% endif %}>Female</option>
-                                                    <option value="Other" {% if current_user.patient and current_user.patient.gender == 'Other' %}selected{% endif %}>Other</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="address" class="form-label">Address</label>
-                                            <textarea class="form-control" id="address" name="address" value="{{current_user.patient.address}}" rows="3">{{ current_user.patient.address if current_user.patient else '' }}</textarea>
-                                        </div>
-                                        {% endif %}
-        
-                                        <hr>
-                                        <div class="text-end">
-                                            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Save Personal Info</button>
-                                        </div>
-                                    </div> <!-- End Form Fields Column -->
-                                </div> <!-- End Row -->
-                            </form>
+            <!-- Security -->
+            <div class="tab-pane fade" id="security" role="tabpanel">
+                <h5 class="mb-3">Change Your Password</h5>
+                <form method="POST" action="{{ url_for('main.change_password') }}" class="row justify-content-center">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" name="old_password" placeholder="Current password" required>
                         </div>
-
-                        <!-- Security Tab Pane -->
-                        <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
-                            <h5 class="mb-3">Change Your Password</h5>
-                             <form method="POST" action="{{ url_for('main.change_password') }}">
-                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                 <div class="row justify-content-center">
-                                     <div class="col-md-8">
-                                         <div class="form-floating mb-3">
-                                             <input type="password" class="form-control" id="current_password" name="old_password" placeholder="Current Password" required>
-                                             <label for="current_password">Current Password</label>
-                                         </div>
-                                         <div class="form-floating mb-3">
-                                             <input type="password" class="form-control" id="new_password" name="new_password" placeholder="New Password" required>
-                                             <label for="new_password">New Password</label>
-                                         </div>
-                                         <div class="form-floating mb-3">
-                                             <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm New Password" required>
-                                             <label for="confirm_password">Confirm New Password</label>
-                                         </div>
-                                         <div class="text-center">
-                                             <button type="submit" class="btn btn-primary"><i class="bi bi-key-fill me-1"></i> Update Password</button>
-                                         </div>
-                                     </div>
-                                 </div>
-                             </form>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" name="new_password" placeholder="New password" minlength="6" required>
                         </div>
-                    </div> <!-- End Tab Content -->
-                </div> <!-- End Card Body -->
-            </div> <!-- End Card -->
-        </div> <!-- End Main Content -->
-
-        <div class="footer mt-4 text-center ">
-            © 2025 Hospital Management System | HMS Portal
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" name="confirm_password" placeholder="Repeat new password" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-key"></i> Update Password</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div> <!-- End Content -->
-</div> <!-- End Wrapper -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
 <script>
-    // Simple script to preview the selected image
     function previewImage(event) {
-        const reader = new FileReader();
-        reader.onload = function(){
-            const output = document.getElementById('profileImagePreview');
-            output.src = reader.result;
-        };
+        var reader = new FileReader();
+        reader.onload = function () { document.getElementById('profileImagePreview').src = reader.result; };
         reader.readAsDataURL(event.target.files[0]);
     }
 </script>
-</body>
-</html>
-
+{% endblock %}

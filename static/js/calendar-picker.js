@@ -1,6 +1,7 @@
 /* ============================================================
    HMS Portal - Interactive Calendar Slot Picker JS
    Receives doctor weekly schedule + booked datetimes from server.
+   Also receives daily capacity info (Feature 2).
    ============================================================ */
 (function () {
     'use strict';
@@ -9,15 +10,16 @@
         var container = document.getElementById(options.containerId);
         if (!container) return;
 
-        var schedule = options.schedule || {};      // { "Monday": ["08:00:00", "16:00:00"], ... }
-        var bookedDates = options.bookedDates || []; // ["2025-01-15 08:00:00", ...]
+        var schedule = options.schedule || {};       // { "Monday": ["08:00:00", "16:00:00"], ... }
+        var bookedDates = options.bookedDates || [];  // ["2025-01-15 08:00:00", ...]
         var doctorId = options.doctorId;
         var csrfToken = options.csrfToken;
+        var capacityMap = options.capacityMap || {};  // { "2025-01-15": 3 } booked count per date
+        var maxPerDay = options.maxPerDay || 20;      // daily capacity ceiling
 
-        var dayIndexMap = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
         var selectedDate = null;
 
-        // Normalize schedule into day -> [start times] for morning/evening
+        // Normalize schedule into day -> [start times]
         var daySlots = {};
         Object.keys(schedule).forEach(function (day) {
             var slots = [];
@@ -29,7 +31,6 @@
             daySlots[day] = slots;
         });
 
-        // bookedDates normalized to "YYYY-MM-DD HH:MM"
         var booked = new Set(bookedDates.map(function (d) { return d.substring(0, 16); }));
 
         var now = new Date();
@@ -43,6 +44,10 @@
 
         function dateKey(date) {
             return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+        }
+
+        function isDayFull(cellKey) {
+            return (capacityMap[cellKey] || 0) >= maxPerDay;
         }
 
         function buildCalendar() {
@@ -73,11 +78,13 @@
                 var isFuture = cell >= new Date(now.getFullYear(), now.getMonth(), now.getDate());
                 var dayName = cell.toLocaleDateString('en-US', { weekday: 'long' });
                 var hasSlots = isFuture && daySlots[dayName] && daySlots[dayName].length > 0;
+                var dayFull = isFuture && hasSlots && isDayFull(cellKey);
 
-                if (hasSlots) classes.push('available');
+                if (hasSlots && !dayFull) classes.push('available');
+                else if (hasSlots && dayFull) classes.push('full');
                 else classes.push('unavailable');
 
-                gridHtml += '<div class="' + classes.join(' ') + '" data-date="' + cellKey + '">' + cell.getDate() + '</div>';
+                gridHtml += '<div class="' + classes.join(' ') + '" data-date="' + cellKey + '" data-full="' + (dayFull ? '1' : '0') + '">' + cell.getDate() + '</div>';
             }
             gridHtml += '</div>';
             container.innerHTML = gridHtml;
@@ -90,13 +97,21 @@
                     renderSlots();
                 });
             });
+
+            container.querySelectorAll('.cal-day.full').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('This day is fully booked (' + maxPerDay + '/' + maxPerDay + '). Pick another day.', 'warning');
+                    }
+                });
+            });
         }
 
         function renderSlots() {
             var slotsArea = document.getElementById(options.slotsId);
             if (!slotsArea) return;
             if (!selectedDate) {
-                slotsArea.innerHTML = '<h6>Select a date to see available slots</h6>';
+                slotsArea.innerHTML = '<p class="text-muted mb-0" style="font-size:.85rem;">Select a date from the calendar above.</p>';
                 return;
             }
             var dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
@@ -110,8 +125,11 @@
                 slotsArea.innerHTML = '<h6>No available slots on ' + dayName + '.</h6>';
                 return;
             }
-            var html = '<h6>Available slots on ' + selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) + '</h6>';
-            available.forEach(function (t, idx) {
+            var bookedCount = capacityMap[key] || 0;
+            var html = '<div class="d-flex justify-content-between align-items-center mb-2">'
+                + '<h6 class="mb-0">Available slots on ' + selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) + '</h6>'
+                + '<span class="badge badge-info">' + bookedCount + '/' + maxPerDay + ' booked</span></div>';
+            available.forEach(function (t) {
                 var display = new Date('2000-01-01T' + t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 html += '<button type="button" class="slot-btn" data-time="' + t + ':00">' + display + '</button>';
             });

@@ -1,28 +1,57 @@
 {% set role = current_user.role.lower() if current_user.is_authenticated else '' %}
-<nav id="sidebar">
-    <div class="sidebar-header d-flex align-items-center">
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-            <img src="{{ url_for('static', filename='img/mad1.png') }}" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
-            <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
-        </a>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo"><i class="bi bi-heart-pulse-fill"></i></div>
+        <span class="brand-text">HMS<span> Portal</span></span>
     </div>
-    <ul class="list-unstyled components">
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">Main Menu</div>
         {% if role == 'admin' %}
-            <li><a href="{{ url_for('main.admin_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-            <li><a href="{{ url_for('main.all_doctors') }}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
-            <li><a href="{{ url_for('main.all_patients') }}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
-            <li><a href="{{ url_for('main.all_appointments') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+        <ul class="p-0 m-0 d-flex flex-column" style="gap:2px;list-style:none;">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.admin_dashboard') }}"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.all_doctors') }}"><i class="bi bi-person-badge"></i><span class="nav-label">Doctors</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.all_patients') }}"><i class="bi bi-people"></i><span class="nav-label">Patients</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.all_appointments') }}"><i class="bi bi-calendar-check"></i><span class="nav-label">Appointments</span></a></li>
+        </ul>
+        <div class="nav-section mt-4">Management</div>
+        <ul class="p-0 m-0 d-flex flex-column" style="gap:2px;list-style:none;">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.add_doctor') }}"><i class="bi bi-person-plus"></i><span class="nav-label">Add Doctor</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-gear"></i><span class="nav-label">Settings</span></a></li>
+        </ul>
+
         {% elif role == 'doctor' %}
-            <li><a href="{{ url_for('main.doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-            <li><a href="{{ url_for('main.set_availability') }}"><i class="bi bi-clock-fill me-2"></i>Availability</a></li>
-            <li><a href="{{ url_for('main.manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
-            <li><a href="{{ url_for('main.assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
+        <ul class="p-0 m-0 d-flex flex-column" style="gap:2px;list-style:none;">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.manage_appointment') }}"><i class="bi bi-calendar-check"></i><span class="nav-label">Appointments</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.assigned_patients') }}"><i class="bi bi-people"></i><span class="nav-label">Assigned Patients</span></a></li>
+        </ul>
+        <div class="nav-section mt-4">Schedule</div>
+        <ul class="p-0 m-0 d-flex flex-column" style="gap:2px;list-style:none;">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.set_availability') }}"><i class="bi bi-clock-history"></i><span class="nav-label">Weekly Availability</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-gear"></i><span class="nav-label">Settings</span></a></li>
+        </ul>
+
         {% elif role == 'patient' %}
-            <li><a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
-            <li><a href="{{ url_for('main.doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
-            <li><a href="{{ url_for('main.booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
-            <li><a href="{{ url_for('main.medical_history') }}"><i class="bi bi-journal-medical me-2"></i>Medical History</a></li>
+        <ul class="p-0 m-0 d-flex flex-column" style="gap:2px;list-style:none;">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill"></i><span class="nav-label">Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.doctor_list') }}"><i class="bi bi-search"></i><span class="nav-label">Find a Doctor</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.booked_appointment_list') }}"><i class="bi bi-calendar-check"></i><span class="nav-label">My Appointments</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.medical_history') }}"><i class="bi bi-journal-medical"></i><span class="nav-label">Medical History</span></a></li>
+        </ul>
+        <div class="nav-section mt-4">Account</div>
+        <ul class="p-0 m-0 d-flex flex-column" style="gap:2px;list-style:none;">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-gear"></i><span class="nav-label">Profile Settings</span></a></li>
+        </ul>
         {% endif %}
-        <li><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
-    </ul>
-</nav>
+    </nav>
+
+    <div class="sidebar-user">
+        <img src="{{ url_for('static', filename='img/' + (current_user.profile_picture or 'default.png')) }}"
+             alt="Avatar" class="avatar">
+        <div class="user-meta">
+            <div class="user-name">{{ current_user.full_name }}</div>
+            <div class="user-role">{{ current_user.role }}</div>
+        </div>
+    </div>
+</aside>

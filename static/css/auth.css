@@ -1,0 +1,125 @@
+/* ==========================================================================
+   HMS — AUTH PAGES (login / register / forgot password)
+   ========================================================================== */
+
+.auth-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* ---------- Left side ---------- */
+.auth-side {
+  flex: 0 0 46%;
+  max-width: 46%;
+  background: linear-gradient(150deg, var(--primary) 0%, #4338ca 55%, var(--accent-600) 120%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  color: #fff;
+}
+.auth-blob-1 { width: 420px; height: 420px; background: rgba(255,255,255,0.15); top: -100px; right: -80px; }
+.auth-blob-2 { width: 320px; height: 320px; background: rgba(6,182,212,0.4); bottom: -120px; left: -60px; animation-delay: 4s; }
+.auth-side-inner {
+  position: relative; z-index: 2;
+  padding: var(--space-8) var(--space-10);
+  display: flex; flex-direction: column;
+  width: 100%;
+}
+.auth-brand { display: flex; align-items: center; gap: var(--space-3); color: #fff; }
+.auth-brand:hover { color: #fff; }
+.auth-brand .brand-logo {
+  width: 42px; height: 42px; border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: #fff;
+}
+.auth-brand .brand-text { font-family: var(--font-heading); font-weight: 800; font-size: 1.3rem; }
+.auth-brand .brand-text span { color: #a5f3fc; }
+
+.auth-side-content { margin: auto 0; max-width: 480px; }
+.auth-side-content h2 {
+  color: #fff; font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+  font-weight: 800; line-height: 1.15; margin-bottom: var(--space-4);
+  animation: authFade 0.7s var(--ease-out) both;
+}
+.auth-side-content h2 span { color: #a5f3fc; }
+.auth-side-content p {
+  color: rgba(255,255,255,0.8); font-size: var(--text-base);
+  line-height: 1.7; margin-bottom: var(--space-6);
+  animation: authFade 0.7s 0.15s var(--ease-out) both;
+}
+.auth-features { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
+.auth-features li {
+  display: flex; align-items: center; gap: var(--space-3);
+  color: rgba(255,255,255,0.9); font-size: var(--text-sm); font-weight: 500;
+  animation: authFade 0.7s 0.3s var(--ease-out) both;
+}
+.auth-features li i {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; flex-shrink: 0;
+}
+.auth-side-foot { color: rgba(255,255,255,0.5); font-size: var(--text-xs); }
+
+/* ---------- Right side ---------- */
+.auth-main {
+  flex: 1;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  position: relative;
+}
+.auth-main-top {
+  display: flex; justify-content: flex-end;
+  padding: var(--space-5) var(--space-6);
+}
+.auth-form-wrap {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 var(--space-6) var(--space-12);
+}
+
+.auth-card {
+  width: 100%; max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+  animation: authCard 0.5s var(--ease-out) both;
+}
+.auth-card .auth-logo {
+  width: 56px; height: 56px; margin: 0 auto var(--space-4);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.6rem;
+  box-shadow: var(--shadow-md);
+}
+.auth-card h3 {
+  text-align: center; font-size: var(--text-2xl);
+  margin-bottom: var(--space-1); color: var(--text);
+}
+.auth-card .auth-sub {
+  text-align: center; color: var(--text-muted);
+  font-size: var(--text-sm); margin-bottom: var(--space-6);
+}
+.auth-card .auth-foot {
+  text-align: center; font-size: var(--text-sm);
+  color: var(--text-muted); margin-top: var(--space-5);
+}
+.auth-card .auth-foot a { font-weight: var(--weight-semibold); }
+
+@keyframes authFade { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes authCard { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991px) {
+  .auth-side { display: none; }
+  .auth-main { min-height: 100vh; }
+}
+@media (max-width: 575px) {
+  .auth-card { padding: var(--space-6); }
+  .auth-form-wrap { padding-bottom: var(--space-8); }
+}

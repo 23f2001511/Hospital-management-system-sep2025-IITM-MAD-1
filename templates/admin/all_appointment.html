@@ -1,136 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>All Appointments | HMS Portal</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../../static/css/admin/all_appointments.css" />
-  <link rel="stylesheet" href="../../static/css/style.css" />
-  {% include 'partials/global_assets.html' %}
-</head>
-<body>
-  <div class="wrapper">
-    {% include 'partials/sidebar.html' %}
-    <div id="content">
-      <nav class="navbar navbar-expand-lg navbar-light top-navbar">
-        <div class="container-fluid">
-          <h5 class="navbar-title mb-0">Appointments</h5>
-          <div class="d-flex align-items-center ms-auto">
-            {% include 'partials/notification_bell.html' %}
-            <ul class="navbar-nav ms-2">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                      <div class="text-end me-2 d-none d-md-block">
-                          <div class="fw-bold text-dark" style="font-size: 0.9rem;">Admin User</div>
-                          <div class="text-muted" style="font-size: 0.75rem;">Administrator</div>
-                      </div>
-                      <i class="bi bi-person-circle fs-3 text-primary"></i>
-                  </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item text-danger" href="{{url_for('main.logout')}}">Logout</a></li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+{% extends 'base.html' %}
+{% block title %}Appointments | HMS Portal{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.admin_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Appointments</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4 class="page-title" style="margin-top:0;"><i class="bi bi-calendar-check me-2" style="color:var(--primary);"></i>Appointments</h4>
+    <p class="page-subtitle">All appointments across the hospital</p>
+</div>
 
-      <div class="main-content">
-        <div class="container-fluid p-0">
-          <div class="card content-panel">
-            <div class="card-header panel-header">
-              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5 class="mb-0">All Appointments <span class="badge bg-secondary">{{ total }}</span></h5>
-              </div>
+<div class="card">
+    <div class="card-body pb-3">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="q" class="form-control" placeholder="Patient or doctor name..." value="{{ q }}">
             </div>
-
-            <!-- Search + Filters -->
-            <div class="card-body pb-0">
-              <form method="GET" class="row g-2 align-items-end">
-                <div class="col-md-4">
-                  <label class="form-label small">Search</label>
-                  <input type="text" name="q" class="form-control" placeholder="Patient or doctor name..." value="{{ q }}">
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label small">Status</label>
-                  <select name="status" class="form-select">
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
                     <option value="">All</option>
                     {% for st in ['Booked', 'Completed', 'Cancelled'] %}
                     <option value="{{ st }}" {% if status == st %}selected{% endif %}>{{ st }}</option>
                     {% endfor %}
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label small">From</label>
-                  <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label small">To</label>
-                  <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                  <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Filter</button>
-                  <a href="{{ url_for('main.all_appointments') }}" class="btn btn-outline-secondary">Clear</a>
-                </div>
-              </form>
+                </select>
             </div>
-
-            <div class="card-body table-responsive">
-              <table class="table table-hover align-middle">
-                <thead class="table-light">
-                  <tr>
-                    <th>Sr.No.</th>
-                    <th>Patient Name</th>
-                    <th>Doctor Name</th>
-                    <th>Department</th>
-                    <th>Date & Time</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="HMSTable">
-                {% for appointment in appointments.items %}
-                  <tr>
-                    <td>{{ (page - 1) * 10 + loop.index }}</td>
-                    <td>{{appointment.patient.user.full_name}}</td>
-                    <td>Dr. {{appointment.doctor.user.full_name}}</td>
-                    <td>{{appointment.doctor.specialization}}</td>
-                    <td>{{appointment.appointment_datetime.strftime('%d-%m-%Y %H:%M')}}</td>
-                    <td><span class="badge bg-{{ 'success' if appointment.status.lower() == 'completed' else ('danger' if appointment.status.lower() == 'cancelled' else 'primary') }}">{{appointment.status}}</span></td>
-                    {% if appointment.status.lower() == 'completed' %}
-                      <td>
-                        <button onclick="location.href='{{url_for('main.admin_view_report', appointment_id=appointment.id)}}'" class="badge bg-primary"><i class="bi bi-eye"></i> Report</button>
-                      </td>
-                    {% elif appointment.status.lower() == 'cancelled' %}
-                      <td>
-                        <button class="btn btn-sm btn-primary" disabled><i class="bi bi-x-circle"></i> Report</button>
-                      </td>
-                    {% else %}
-                      <td>
-                        <button class="badge bg-success" disabled><i class="bi bi-check"></i> Pending</button>
-                      </td>
-                    {% endif %}
-                  </tr>
-                {% else %}
-                  <tr><td colspan="7" class="text-center text-muted py-4">No appointments found.</td></tr>
-                {% endfor %}
-                </tbody>
-              </table>
+            <div class="col-md-2">
+                <label class="form-label">From</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
             </div>
-            <div class="card-footer text-center">
-              {% include 'partials/pagination.html' %}
+            <div class="col-md-2">
+                <label class="form-label">To</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
             </div>
-          </div>
-          <div class="footer mt-4 text-center text-muted">
-            © 2025 Hospital Management System | All Appointments
-          </div>
-        </div>
-      </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search"></i> Filter</button>
+                <a href="{{ url_for('main.all_appointments') }}" class="btn btn-ghost"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
     </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Department</th>
+                    <th>Date &amp; Time</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments.items %}
+                <tr>
+                    <td>{{ (page - 1) * 10 + loop.index }}</td>
+                    <td class="fw-semibold">{{ appointment.patient.user.full_name }}</td>
+                    <td>Dr. {{ appointment.doctor.user.full_name }}</td>
+                    <td><span class="badge badge-primary">{{ appointment.doctor.specialization }}</span></td>
+                    <td>{{ appointment.appointment_datetime.strftime('%d-%m-%Y %H:%M') }}</td>
+                    <td>
+                        {% if appointment.status.lower() == 'completed' %}
+                        <span class="badge badge-success">Completed</span>
+                        {% elif appointment.status.lower() == 'cancelled' %}
+                        <span class="badge badge-danger">Cancelled</span>
+                        {% else %}
+                        <span class="badge badge-info">Booked</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end actions-cell">
+                        {% if appointment.status.lower() == 'completed' %}
+                        <a href="{{ url_for('main.admin_view_report', appointment_id=appointment.id) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-text"></i> Report</a>
+                        {% endif %}
+                        <a href="{{ url_for('main.view_appointment', appointment_id=appointment.id) }}" class="btn btn-outline btn-sm"><i class="bi bi-eye"></i></a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
+                        <h5>No appointments found</h5>
+                        <p>Try adjusting your search or filters.</p>
+                    </div>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

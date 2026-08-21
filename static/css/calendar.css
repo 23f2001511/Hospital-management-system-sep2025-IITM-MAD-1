@@ -1,48 +1,63 @@
-/* ============================================================
-   HMS Portal - Interactive Calendar Slot Picker
-   ============================================================ */
+/* ==========================================================================
+   HMS — INTERACTIVE CALENDAR SLOT PICKER
+   ========================================================================== */
+
 .calendar-picker {
-    background: var(--surface); border-radius: 16px;
-    border: 1px solid var(--border); overflow: hidden;
-    box-shadow: var(--shadow-sm);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
+
 .cal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px; background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background: var(--primary);
+  color: #fff;
 }
 .cal-header button {
-    background: rgba(255,255,255,0.15); border: none; color: white;
-    width: 32px; height: 32px; border-radius: 8px;
-    cursor: pointer; transition: background 0.2s;
-    display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15); border: none; color: #fff;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: background var(--dur-fast) var(--ease-out);
+  display: flex; align-items: center; justify-content: center;
 }
 .cal-header button:hover { background: rgba(255,255,255,0.3); }
-.cal-header h6 { margin: 0; font-weight: 600; font-size: 1rem; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); }
-.cal-day-header { text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; background: var(--surface); }
+.cal-header h6 { margin: 0; font-weight: 600; font-size: var(--text-base); color: #fff; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: var(--space-3); }
+.cal-day-header { text-align: center; font-size: var(--text-xs); font-weight: 600; color: var(--text-muted); padding: var(--space-1) 0 var(--space-2); }
 .cal-day {
-    text-align: center; padding: 10px 0; font-size: 0.88rem; cursor: pointer;
-    background: var(--surface); transition: all 0.15s;
-    color: var(--text);
+  text-align: center; padding: var(--space-2) 0; font-size: var(--text-sm);
+  cursor: pointer; background: transparent; color: var(--text);
+  border-radius: var(--radius-sm);
+  transition: all var(--dur-fast) var(--ease-out);
 }
-.cal-day:hover { background: var(--accent-light); }
+.cal-day:hover { background: var(--surface-hover); }
 .cal-day.today { font-weight: 700; color: var(--primary); }
-.cal-day.other-month { color: var(--text-muted); opacity: 0.4; }
-.cal-day.selected { background: var(--primary); color: white; border-radius: 50%; }
+.cal-day.other-month { color: var(--text-subtle); opacity: 0.4; }
+.cal-day.selected { background: var(--primary); color: #fff; }
 .cal-day.unavailable { opacity: 0.3; cursor: not-allowed; }
-.cal-day.available { cursor: pointer; }
-.cal-day.available:hover { background: var(--accent); color: white; }
+.cal-day.available:hover { background: var(--primary-050); color: var(--primary-600); }
+.cal-day.full {
+  background: var(--danger-050); color: var(--danger-600);
+  text-decoration: line-through; cursor: not-allowed;
+  font-weight: 500;
+}
+.cal-day.full:hover { background: var(--danger-050); }
+
 .cal-slots {
-    padding: 16px 20px; border-top: 1px solid var(--border);
-    animation: slotFadeIn 0.25s ease;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+  animation: slotFadeIn 0.25s var(--ease-out);
 }
-.cal-slots h6 { font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+.cal-slots h6 { font-size: var(--text-sm); font-weight: 600; margin-bottom: var(--space-3); }
 .slot-btn {
-    display: inline-block; padding: 8px 18px; margin: 4px 6px 4px 0;
-    border-radius: 10px; border: 1.5px solid var(--border);
-    background: var(--surface); color: var(--text); font-size: 0.85rem;
-    cursor: pointer; transition: all 0.2s; font-weight: 500;
+  display: inline-block; padding: 0.5rem 1.1rem; margin: 0 var(--space-2) var(--space-2) 0;
+  border-radius: var(--radius-md); border: 1.5px solid var(--border-strong);
+  background: var(--surface); color: var(--text); font-size: var(--text-sm);
+  cursor: pointer; transition: all var(--dur-fast) var(--ease-out); font-weight: 500;
 }
-.slot-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--accent-light); }
-.slot-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+.slot-btn:hover { border-color: var(--primary); color: var(--primary-600); background: var(--primary-050); }
+.slot-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
 @keyframes slotFadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }

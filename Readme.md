@@ -4,6 +4,29 @@ A full-featured web-based Hospital Management System built with **Flask + SQLAlc
 
 ---
 
+## 🎨 Design System
+
+The entire application shares one design system defined in `static/css/`:
+
+| File | Purpose |
+|---|---|
+| `tokens.css` | Design tokens — colors, typography, spacing, radius, elevation, motion. Single source of truth. |
+| `base.css` | Reset + base element styles |
+| `components.css` | Buttons, forms, cards, badges, tables, modals, dropdowns, pagination, toasts, skeletons, empty states |
+| `layout.css` | Sidebar, topbar, page header, breadcrumbs, responsive shell |
+| `utilities.css` | Spacing/text/flex helpers |
+| `app.css` | Entry point importing the above (tokens → base → components → layout → utilities) |
+
+Key decisions:
+- **Fonts**: *Plus Jakarta Sans* for headings, *Inter* for body — exactly two families site-wide.
+- **Colors**: Primary `#2563eb`, accent `#06b6d4`, full slate neutral scale, semantic success/warning/danger/info — all as CSS variables, with a complete dark-mode token set.
+- **Spacing**: 4px-based scale (`--space-1` … `--space-16`).
+- **Elevation**: five shadow levels (`--shadow-xs` … `--shadow-xl`) plus a shared focus ring.
+- **Motion**: 150–350ms micro-interactions with a spring-like ease; `prefers-reduced-motion` respected globally.
+- **Layout**: every authenticated page extends `templates/base.html` (sidebar + topbar + content shell); auth pages extend `templates/auth_base.html` (split-screen). No page defines its own colors or fonts.
+
+---
+
 ## 🚀 Deployment Instructions (Free)
 
 ### Option 1: Local Development
@@ -51,6 +74,11 @@ Render's free Postgres expires after ~30 days. **Use one of these instead:**
 
 The app switches automatically between SQLite (local) and PostgreSQL (production) based on the `DATABASE_URL` scheme.
 
+> **Upgrading an existing database:** if you already ran a previous version of this
+> app, run `python migrate_db.py` once before starting to add the new columns
+> (doctor daily capacity, soft-delete flag, appointment reassignment fields).
+> Fresh installs create everything automatically on first boot.
+
 ### Environment Variables
 
 | Variable | Required | Default | Description |
@@ -76,7 +104,8 @@ If SMTP is not configured, emails are logged to the console instead of crashing.
 | Database | SQLAlchemy 2.0 + SQLite (dev) / PostgreSQL (prod) |
 | Real-time | Flask-SocketIO + python-socketio + eventlet |
 | Frontend | Bootstrap 5, Jinja2, Chart.js, Jitsi Meet API |
-| Email | Flask-Mail (GMP only when configured) |
+| Design system | Custom CSS architecture (`tokens.css`, `components.css`, `layout.css`, `utilities.css`) |
+| Email | Flask-Mail (only when configured) |
 | PDF | fpdf2 |
 | Auth | Flask-Login, Werkzeug password hashing, Flask-WTF CSRF |
 

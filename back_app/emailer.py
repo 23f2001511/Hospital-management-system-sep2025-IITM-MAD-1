@@ -12,11 +12,12 @@ def send_email(subject, recipients, body_html=None, body_text=None):
     password = current_app.config.get('MAIL_PASSWORD')
 
     if mail is None or not username or not password:
-        logger.info(
-            "SMTP not configured - email would be sent.\n"
-            "To: %s\nSubject: %s\nBody:\n%s",
-            recipients, subject, body_html or body_text or ''
-        )
+        print('\n' + '=' * 60)
+        print('EMAIL NOT SENT (SMTP not configured) — would have emailed:')
+        print('To:', recipients)
+        print('Subject:', subject)
+        print('Body:', (body_html or body_text or ''))
+        print('=' * 60 + '\n')
         return False
 
     try:
@@ -28,10 +29,37 @@ def send_email(subject, recipients, body_html=None, body_text=None):
         mail.send(msg)
         return True
     except Exception as e:
-        logger.error("Failed to send email: %s", e)
-        logger.info("Email content fallback:\nTo: %s\nSubject: %s\nBody:\n%s",
-                    recipients, subject, body_html or body_text or '')
+        print('\n' + '=' * 60)
+        print('EMAIL FAILED TO SEND (%s) — fallback content:' % e)
+        print('To:', recipients)
+        print('Subject:', subject)
+        print('Body:', (body_html or body_text or ''))
+        print('=' * 60 + '\n')
         return False
+
+
+def send_doctor_credentials_email(doctor_name, email, generated_password, login_url='/'):
+    """Email a newly created doctor their login credentials."""
+    subject = 'Your HMS Portal Account Has Been Created'
+    body_html = f"""
+    <div style="font-family:Inter, Arial, sans-serif; max-width:520px; margin:0 auto;">
+      <div style="background:#2563eb; padding:24px; border-radius:12px 12px 0 0; text-align:center;">
+        <h2 style="color:#fff; margin:0;">Welcome to HMS Portal</h2>
+      </div>
+      <div style="border:1px solid #e2e8f0; border-top:none; padding:28px; border-radius:0 0 12px 12px;">
+        <p style="color:#0f172a;">Dear <b>{doctor_name}</b>,</p>
+        <p style="color:#475569;">Your doctor account has been created by the hospital administrator. You can sign in with the credentials below and complete your profile.</p>
+        <div style="background:#f1f5f9; border-radius:8px; padding:16px; margin:20px 0;">
+          <p style="margin:4px 0; color:#334155;"><b>Email:</b> {email}</p>
+          <p style="margin:4px 0; color:#334155;"><b>Temporary Password:</b> <code style="background:#e2e8f0; padding:2px 8px; border-radius:4px; font-size:14px;">{generated_password}</code></p>
+        </div>
+        <p style="color:#475569;">After logging in, please go to <b>Profile Settings</b> to change your password and complete your details.</p>
+        <a href="{login_url}" style="display:inline-block; background:#2563eb; color:#fff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:600;">Login to HMS Portal</a>
+        <p style="color:#94a3b8; font-size:12px; margin-top:24px;">If you didn't expect this email, please ignore it.</p>
+      </div>
+    </div>
+    """
+    return send_email(subject, [email], body_html=body_html)
 
 
 def send_appointment_email(appointment, event):

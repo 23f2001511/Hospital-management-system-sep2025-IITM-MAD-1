@@ -1,40 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Consultation | HMS Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <style>
-        body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; background: #0f1b2d; }
+        body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: var(--font-body); background: #0b1120; overflow: hidden; }
         .video-topbar {
-            background: #1a2433; color: white; padding: 12px 20px;
+            background: #111c33; color: #e2e8f0; padding: 12px 20px;
             display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+            flex-shrink: 0; border-bottom: 1px solid rgba(148,163,184,0.15);
         }
-        .video-topbar h5 { margin: 0; font-size: 1rem; }
-        .btn-outline-light2 { border: 1px solid rgba(255,255,255,0.3); color: white; background: transparent; border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .btn-outline-light2:hover { background: rgba(255,255,255,0.1); color: white; }
-        .btn-danger2 { border: none; background: #e74c3c; color: white; border-radius: 8px; padding: 8px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .btn-danger2:hover { background: #c0392b; }
+        .video-topbar h5 { margin: 0; font-size: 1rem; color: #e2e8f0; }
+        .video-topbar small { color: #94a3b8; }
+        .btn-outline-light2 { border: 1px solid rgba(255,255,255,0.25); color: #e2e8f0; background: transparent; border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .btn-outline-light2:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-danger2 { border: none; background: #ef4444; color: #fff; border-radius: 8px; padding: 8px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .btn-danger2:hover { background: #dc2626; }
         #jitsi-container { flex: 1; }
-        .status-banner { text-align: center; padding: 6px; font-size: 0.8rem; color: #00c9a7; background: rgba(0,201,167,0.1); border-bottom: 1px solid rgba(0,201,167,0.2); }
+        .status-banner { text-align: center; padding: 6px; font-size: 0.8rem; color: #10b981; background: rgba(16,185,129,0.1); border-bottom: 1px solid rgba(16,185,129,0.2); }
+        .dark-toggle { position: fixed; top: 70px; right: 16px; z-index: 2000; background:#16233f; border-color:rgba(148,163,184,.3); color:#e2e8f0; }
     </style>
 </head>
 <body>
     <div class="video-topbar">
         <div>
-            <h5><i class="bi bi-camera-video-fill me-2"></i>Video Consultation - Appointment #{{ appointment.id }}</h5>
-            <small style="opacity:0.6;">{{ appointment.patient.user.full_name }} with Dr. {{ appointment.doctor.user.full_name }}</small>
+            <h5><i class="bi bi-camera-video me-2" style="color:#06b6d4;"></i>Video Consultation — Appointment #{{ appointment.id }}</h5>
+            <small>{{ appointment.patient.user.full_name }} with Dr. {{ appointment.doctor.user.full_name }}</small>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <a href="{{ url_for('main.chat_room', appointment_id=appointment.id) }}" class="btn-outline-light2">
-                <i class="bi bi-chat-dots-fill"></i> Chat
-            </a>
-            <button class="btn-danger2" onclick="endCall()"><i class="bi bi-telephone-x-fill"></i> End Call</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="dark-toggle" type="button" title="Toggle dark mode"><i class="bi bi-moon-stars-fill dark-toggle-icon"></i></button>
+            <a href="{{ url_for('main.chat_room', appointment_id=appointment.id) }}" class="btn-outline-light2"><i class="bi bi-chat-dots"></i> Chat</a>
+            <button class="btn-danger2" onclick="endCall()"><i class="bi bi-telephone-x"></i> End Call</button>
         </div>
     </div>
-    <div class="status-banner" id="statusBanner">
+    <div class="status-banner">
         <i class="bi bi-circle-fill" style="font-size:0.5rem;"></i>
         <span id="statusText">{% if video.status == 'ended' %}This call has ended.{% else %}Starting secure video call...{% endif %}</span>
     </div>
@@ -42,6 +46,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://meet.jit.si/external_api.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script>
         const roomName = '{{ video.room_name }}';
         const appointmentId = {{ appointment.id }};
@@ -49,46 +54,33 @@
         const currentUserName = '{{ current_user.full_name }}';
         const videoStatus = '{{ video.status }}';
 
-        let api = null;
-        let endedByUser = false;
+        let api = null, endedByUser = false;
 
         function initJitsi() {
             if (videoStatus === 'ended') {
                 document.getElementById('statusText').textContent = 'This call has already ended.';
                 return;
             }
-            const domain = 'meet.jit.si';
             const options = {
                 roomName: roomName,
-                width: '100%',
-                height: '100%',
+                width: '100%', height: '100%',
                 parentNode: document.querySelector('#jitsi-container'),
                 userInfo: { displayName: currentUserName },
-                configOverwrite: {
-                    startWithAudioMuted: false,
-                    startWithVideoMuted: false,
-                    prejoinPageEnabled: false,
-                    disableDeepLinking: true
-                },
+                configOverwrite: { startWithAudioMuted: false, startWithVideoMuted: false, prejoinPageEnabled: false, disableDeepLinking: true },
                 interfaceConfigOverwrite: {
                     TOOLBAR_BUTTONS: ['microphone','camera','closedcaptions','desktop','fullscreen','fodeviceselection','hangup','profile','chat','recording','livestreaming','etherpad','sharedvideo','settings','raisehand','videoquality','filmstrip','invite','feedback','stats','shortcuts','tileview','select-background','download','embedmeeting','mute-everyone'],
-                    SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false,
-                    DEFAULT_BACKGROUND: '#0f1b2d'
+                    SHOW_JITSI_WATERMARK: false, SHOW_WATERMARK_FOR_GUESTS: false, DEFAULT_BACKGROUND: '#0b1120'
                 }
             };
-            api = new JitsiMeetExternalAPI(domain, options);
+            api = new JitsiMeetExternalAPI('meet.jit.si', options);
 
-            // Mark call active when a participant joins
             fetch('/video/' + appointmentId + '/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify({})
             }).catch(() => {});
 
-            api.addListener('videoConferenceLeft', function() {
-                endCall();
-            });
+            api.addListener('videoConferenceLeft', function () { endCall(); });
         }
 
         function endCall() {
@@ -98,18 +90,15 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify({})
-            }).finally(function() {
+            }).finally(function () {
                 document.getElementById('statusText').textContent = 'Call ended. You can close this window.';
-                if (api) {
-                    try { api.dispose(); } catch(e) {}
-                }
+                if (api) { try { api.dispose(); } catch (e) {} }
             });
         }
 
-        window.addEventListener('beforeunload', function() {
+        window.addEventListener('beforeunload', function () {
             if (!endedByUser) {
-                navigator.sendBeacon('/video/' + appointmentId + '/end',
-                    new Blob([JSON.stringify({})], {type: 'application/json'}));
+                navigator.sendBeacon('/video/' + appointmentId + '/end', new Blob([JSON.stringify({})], { type: 'application/json' }));
             }
         });
 

@@ -1,197 +1,165 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Doctors | HMS Portal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../static/css/style.css">
-    <link rel="stylesheet" href="../../static/css/app.css">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); }
-        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    </style>
-</head>
-<body>
-    <div class="wrapper">
-        {% include 'partials/sidebar.html' %}
-        <div id="content">
-            <nav class="navbar navbar-expand-lg navbar-light top-navbar">
-                <div class="container-fluid">
-                    <h4 class="mb-0">Welcome, {{current_user.full_name}}</h4>
-                    <div class="d-flex align-items-center ms-auto">
-                        {% include 'partials/notification_bell.html' %}
-                        <ul class="navbar-nav ms-2">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle me-1 fs-4"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="{{ url_for('main.update_profile') }}">Edit Profile</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout') }}">Logout</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+{% extends 'base.html' %}
+{% block title %}Find a Doctor | HMS Portal{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.patient_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Find a Doctor</li>
+    </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h4 class="page-title" style="margin-top:0;"><i class="bi bi-search me-2" style="color:var(--primary);"></i>Find Doctors</h4>
+    <p class="page-subtitle">Browse specialists and book your appointment</p>
+</div>
 
-            <div class="main-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Find Doctors to book your appointment</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Search and Filter Bar (live) -->
-                        <div class="row mb-4 g-2">
-                            <div class="col-md-4">
-                                <input id="searchName" type="text" class="form-control" placeholder="Search by name or specialization..." value="{{ q }}">
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filterDept" class="form-select">
-                                    <option value="">All Departments</option>
-                                    {% for department in departments %}
-                                    <option value="{{department.id}}" {% if department == department.id|string %}selected{% endif %}>{{department.name}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filterSpec" class="form-select">
-                                    <option value="">All Specializations</option>
-                                    {% for spec in specializations %}
-                                    <option value="{{spec}}" {% if specialization == spec %}selected{% endif %}>{{spec}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <a href="{{ url_for('main.doctor_list') }}" class="btn btn-outline-secondary w-100">Clear</a>
-                            </div>
-                        </div>
-
-                        <!-- Skeleton loader shown while fetching -->
-                        <div class="row" id="skeletonRow" style="display:none;">
-                            {% for i in range(3) %}
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card p-4 text-center">
-                                    <div class="skeleton rounded-circle mx-auto" style="width:120px;height:120px;"></div>
-                                    <div class="skeleton mt-3 mx-auto" style="width:60%;"></div>
-                                    <div class="skeleton mt-2 mx-auto" style="width:40%;"></div>
-                                    <div class="skeleton mt-3" style="height:38px;"></div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Doctors List -->
-                        <div class="row" id="doctorList">
-                        {% for doctor in doctors.items %}
-                            <div class="col-md-6 col-lg-4 mb-4 doctor-item">
-                                <div class="card doctor-card-glass tilt-card text-center h-100">
-                                    <div class="tilt-glow"></div>
-                                    <div class="card-body">
-                                        <img src="{{ url_for('static', filename='img/' + (doctor.user.profile_picture or 'default.png')) }}"
-                                            class="rounded-circle" width="120" height="120" style="border:2px solid var(--accent);object-fit:cover;">
-                                        <h5 class="card-title mt-3">Dr. {{doctor.user.full_name}}</h5>
-                                        <p class="card-text text-primary fw-bold mb-1">{{doctor.specialization}}</p>
-                                        <div class="rating-stars mb-2">
-                                            {% set avg = doctor.average_rating %}
-                                            {% for i in range(5) %}{% if i < avg %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}
-                                            <span style="color:var(--text-muted);font-size:0.78rem;">{{ avg }} ({{ doctor.rating_count }})</span>
-                                        </div>
-                                        <p class="text-muted small">{{doctor.experience_years}}+ years of experience</p>
-                                        <a href="{{ url_for('main.get_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-primary w-100">
-                                            Go to Profile and book
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="col-12 text-center text-muted py-4">No doctors found.</div>
-                        {% endfor %}
-                        </div>
-
-                        <!-- Pagination -->
-                        <div id="paginationArea">
-                            {% include 'partials/pagination.html' %}
-                        </div>
-                    </div>
-                </div>
+<div class="card mb-4 reveal">
+    <div class="card-body pb-3">
+        <div class="row g-2">
+            <div class="col-md-5">
+                <label class="form-label">Search</label>
+                <input id="searchName" type="text" class="form-control" placeholder="Search by name or specialization..." value="{{ q }}">
             </div>
-
-            <div class="footer mt-4 text-center text-muted">
-                © 2025 Hospital Management System | HMS Portal
+            <div class="col-md-3">
+                <label class="form-label">Department</label>
+                <select id="filterDept" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for dep in departments %}
+                    <option value="{{ dep.id }}" {% if department == dep.id|string %}selected{% endif %}>{{ dep.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Specialization</label>
+                <select id="filterSpec" class="form-select">
+                    <option value="">All Specializations</option>
+                    {% for spec in specializations %}
+                    <option value="{{ spec }}" {% if specialization == spec %}selected{% endif %}>{{ spec }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <a href="{{ url_for('main.doctor_list') }}" class="btn btn-ghost w-100"><i class="bi bi-x-lg"></i></a>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../static/js/app.js"></script>
-    <script>
-        // Live server-side filtering via AJAX
-        var searchInput = document.getElementById('searchName');
-        var deptFilter = document.getElementById('filterDept');
-        var specFilter = document.getElementById('filterSpec');
-        var doctorList = document.getElementById('doctorList');
-        var skeletonRow = document.getElementById('skeletonRow');
-        var paginationArea = document.getElementById('paginationArea');
-        var debounceTimer = null;
+<!-- Skeleton loader -->
+<div class="row" id="skeletonRow" style="display:none;">
+    {% for i in range(3) %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card p-4 text-center">
+            <div class="skeleton rounded-circle mx-auto" style="width:110px;height:110px;"></div>
+            <div class="skeleton mt-3 mx-auto" style="width:60%;"></div>
+            <div class="skeleton mt-2 mx-auto" style="width:40%;"></div>
+            <div class="skeleton mt-3" style="height:38px;"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 
-        function fetchDoctors(url) {
-            skeletonRow.style.display = 'flex';
-            doctorList.style.display = 'none';
-            paginationArea.style.display = 'none';
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    renderDoctors(data);
-                })
-                .catch(function () { skeletonRow.style.display = 'none'; doctorList.style.display = 'flex'; });
+<!-- Doctors list -->
+<div class="row" id="doctorList">
+    {% for doctor in doctors.items %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card doctor-card-glass tilt-card text-center h-100">
+            <div class="tilt-glow"></div>
+            <div class="card-body">
+                <img src="{{ url_for('static', filename='img/' + (doctor.user.profile_picture or 'default.png')) }}"
+                     class="rounded-circle" width="110" height="110" style="border:3px solid var(--primary);object-fit:cover;">
+                <h5 class="mt-3 mb-1">Dr. {{ doctor.user.full_name }}</h5>
+                <p class="text-primary fw-semibold mb-1">{{ doctor.specialization }}</p>
+                <div class="rating-stars mb-2">
+                    {% set avg = doctor.average_rating %}
+                    {% for i in range(5) %}{% if i < avg %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}
+                    <span class="text">{{ avg }} ({{ doctor.rating_count }})</span>
+                </div>
+                <p class="text-muted small mb-3">{{ doctor.experience_years }}+ years of experience</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.get_doctor_profile', doctor_id=doctor.id) }}" class="btn btn-primary">Go to Profile and book</a>
+                    <a href="{{ url_for('main.doctor_reviews', doctor_id=doctor.id) }}" class="btn btn-outline btn-sm">View Reviews</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-person-x"></i></div>
+            <h5>No doctors found</h5>
+            <p>Try adjusting your search or filters.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div id="paginationArea">
+    {% include 'partials/pagination.html' %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    var searchInput = document.getElementById('searchName');
+    var deptFilter = document.getElementById('filterDept');
+    var specFilter = document.getElementById('filterSpec');
+    var doctorList = document.getElementById('doctorList');
+    var skeletonRow = document.getElementById('skeletonRow');
+    var paginationArea = document.getElementById('paginationArea');
+    var debounceTimer = null;
+
+    function fetchDoctors(url) {
+        skeletonRow.style.display = 'flex';
+        doctorList.style.display = 'none';
+        paginationArea.style.display = 'none';
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(renderDoctors)
+            .catch(function () { skeletonRow.style.display = 'none'; doctorList.style.display = 'flex'; });
+    }
+
+    function renderDoctors(data) {
+        var html = '';
+        if (!data.doctors || data.doctors.length === 0) {
+            html = '<div class="col-12"><div class="empty-state"><div class="empty-icon"><i class="bi bi-person-x"></i></div><h5>No doctors found</h5><p>Try adjusting your search or filters.</p></div></div>';
+        } else {
+            data.doctors.forEach(function (d) {
+                html += '<div class="col-md-6 col-lg-4 mb-4">'
+                    + '<div class="card doctor-card-glass tilt-card text-center h-100"><div class="tilt-glow"></div><div class="card-body">'
+                    + '<img src="' + d.avatar + '" class="rounded-circle" width="110" height="110" style="border:3px solid var(--primary);object-fit:cover;">'
+                    + '<h5 class="mt-3 mb-1">' + d.name + '</h5>'
+                    + '<p class="text-primary fw-semibold mb-1">' + d.specialization + '</p>'
+                    + '<div class="rating-stars mb-2">★★★★☆</div>'
+                    + '<p class="text-muted small mb-3">' + d.experience + '+ years of experience</p>'
+                    + '<div class="d-grid gap-2"><a href="' + d.profile_url + '" class="btn btn-primary">Go to Profile and book</a></div>'
+                    + '</div></div></div>';
+            });
         }
+        doctorList.innerHTML = html;
+        skeletonRow.style.display = 'none';
+        doctorList.style.display = 'flex';
+        paginationArea.style.display = 'block';
+        paginationArea.innerHTML = data.pagination_html || '';
+        if (window.hmsInitTilt) window.hmsInitTilt();
+        // re-apply reveal on new items
+        if (window.hmsReveal) window.hmsReveal();
+    }
 
-        function renderDoctors(data) {
-            var html = '';
-            if (!data.doctors || data.doctors.length === 0) {
-                html = '<div class="col-12 text-center text-muted py-4">No doctors found.</div>';
-            } else {
-                data.doctors.forEach(function (d) {
-                    html += '<div class="col-md-6 col-lg-4 mb-4">'
-                        + '<div class="card doctor-card-glass tilt-card text-center h-100"><div class="tilt-glow"></div><div class="card-body">'
-                        + '<img src="' + d.avatar + '" class="rounded-circle" width="120" height="120" style="border:2px solid var(--accent);object-fit:cover;">'
-                        + '<h5 class="card-title mt-3">' + d.name + '</h5>'
-                        + '<p class="card-text text-primary fw-bold mb-1">' + d.specialization + '</p>'
-                        + '<div class="rating-stars mb-2">★★★★☆</div>'
-                        + '<p class="text-muted small">' + d.experience + '+ years of experience</p>'
-                        + '<a href="' + d.profile_url + '" class="btn btn-primary w-100">Go to Profile and book</a>'
-                        + '</div></div></div>';
-                });
-            }
-            doctorList.innerHTML = html;
-            skeletonRow.style.display = 'none';
-            doctorList.style.display = 'flex';
-            paginationArea.style.display = 'block';
-            paginationArea.innerHTML = data.pagination_html || '';
-            // Re-init tilt on new cards
-            if (typeof initTilt === 'function') initTilt();
-        }
+    function debouncedFetch() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+            var params = new URLSearchParams({
+                q: searchInput.value,
+                department: deptFilter.value,
+                specialization: specFilter.value
+            });
+            fetchDoctors('{{ url_for("main.doctor_list") }}?page=1&' + params.toString());
+        }, 400);
+    }
 
-        function debouncedFetch() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(function () {
-                var params = new URLSearchParams({
-                    q: searchInput.value,
-                    department: deptFilter.value,
-                    specialization: specFilter.value
-                });
-                fetchDoctors('{{ url_for("main.doctor_list") }}?page=1&' + params.toString());
-            }, 400);
-        }
-
-        searchInput.addEventListener('keyup', debouncedFetch);
-        deptFilter.addEventListener('change', debouncedFetch);
-        specFilter.addEventListener('change', debouncedFetch);
-    </script>
-</body>
-</html>
+    searchInput.addEventListener('keyup', debouncedFetch);
+    deptFilter.addEventListener('change', debouncedFetch);
+    specFilter.addEventListener('change', debouncedFetch);
+</script>
+{% endblock %}
