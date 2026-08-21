@@ -109,6 +109,7 @@
                     </div>
                     
                     <form action="{{ url_for('main.set_availability') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="card-body p-4">
                             
                             <div class="days-list">

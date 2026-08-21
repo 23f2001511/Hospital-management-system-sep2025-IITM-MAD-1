@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: hms-portal
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+    healthCheckPath: /
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        # Use a free external PostgreSQL provider (Neon / Supabase) so the DB never expires.
+        # Create one there and paste the connection string here.
+        value: postgresql://user:password@host/dbname
+      - key: PYTHON_VERSION
+        value: 3.11.9

@@ -72,6 +72,7 @@
                             <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search" id="globalSearchInput">
                             <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
                         </form>
+                        {% include 'partials/notification_bell.html' %}
                         <!-- User Dropdown -->
                         <ul class="navbar-nav">
                             <li class="nav-item dropdown">
@@ -92,36 +93,82 @@
 
                 <!-- Stats Cards -->
                 <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card stat-card text-white bg-info">
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card stat-doctors">
                             <div class="card-body">
-                                <div class="icon"><i class="bi bi-person-badge-fill"></i></div>
+                                <div class="icon icon-pulse"><i class="bi bi-person-badge-fill"></i></div>
                                 <div>
                                     <h5 class="card-title">Total Doctors</h5>
-                                    <p class="card-text fs-4 fw-bold">{{total_doctors}} </p>
+                                    <p class="card-text stat-num" data-count="{{total_doctors}}">{{total_doctors}}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card text-white bg-primary">
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card stat-patients">
                             <div class="card-body">
-                                <div class="icon"><i class="bi bi-people-fill"></i></div>
+                                <div class="icon icon-pulse"><i class="bi bi-people-fill"></i></div>
                                 <div>
                                     <h5 class="card-title">Total Patients</h5>
-                                    <p class="card-text fs-4 fw-bold">{{total_patients}}</p>
+                                    <p class="card-text stat-num" data-count="{{total_patients}}">{{total_patients}}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card text-white bg-success">
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card stat-appointments">
                             <div class="card-body">
-                                <div class="icon"><i class="bi bi-calendar-check-fill"></i></div>
+                                <div class="icon icon-pulse"><i class="bi bi-calendar-check-fill"></i></div>
                                 <div>
                                     <h5 class="card-title">Appointments</h5>
-                                    <p class="card-text fs-4 fw-bold">{{total_appointments}}</p>
+                                    <p class="card-text stat-num" data-count="{{total_appointments}}">{{total_appointments}}</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="row mb-4">
+                    <div class="col-lg-8 mb-3">
+                        <div class="card content-panel h-100">
+                            <div class="card-header panel-header">
+                                <h5 class="card-title mb-0"><i class="bi bi-graph-up me-2"></i>Appointments per Day (Last 14 Days)</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="appointmentsChart" height="120"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-3">
+                        <div class="card content-panel h-100">
+                            <div class="card-header panel-header">
+                                <h5 class="card-title mb-0"><i class="bi bi-pie-chart me-2"></i>Appointment Status</h5>
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-center">
+                                <canvas id="statusChart" height="150"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-lg-6 mb-3">
+                        <div class="card content-panel h-100">
+                            <div class="card-header panel-header">
+                                <h5 class="card-title mb-0"><i class="bi bi-people-fill me-2"></i>Patients by Department</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="deptChart" height="150"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-3">
+                        <div class="card content-panel h-100">
+                            <div class="card-header panel-header">
+                                <h5 class="card-title mb-0"><i class="bi bi-person-badge-fill me-2"></i>Doctor Workload</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="workloadChart" height="150"></canvas>
                             </div>
                         </div>
                     </div>
@@ -253,8 +300,86 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="../../static/js/dyanamic.js"></script>
-    
+
+    <!-- === ANALYTICS CHARTS === -->
+    <script>
+        const apptLabels = {{ chart_appointments.labels | tojson }};
+        const apptData = {{ chart_appointments.data | tojson }};
+        const deptLabels = {{ chart_dept_patients.labels | tojson }};
+        const deptData = {{ chart_dept_patients.data | tojson }};
+        const workLabels = {{ chart_workload.labels | tojson }};
+        const workData = {{ chart_workload.data | tojson }};
+        const statusLabels = {{ status_labels | tojson }};
+        const statusData = {{ status_data | tojson }};
+
+        Chart.defaults.color = '#6b7c93';
+        Chart.defaults.font.family = 'Inter, sans-serif';
+
+        // Appointments per day
+        new Chart(document.getElementById('appointmentsChart'), {
+            type: 'bar',
+            data: {
+                labels: apptLabels,
+                datasets: [{
+                    label: 'Appointments',
+                    data: apptData,
+                    backgroundColor: 'rgba(26,92,143,0.7)',
+                    borderRadius: 6,
+                    maxBarThickness: 28
+                }]
+            },
+            options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Status doughnut
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: ['#2980bd', '#2ecc71', '#e74c3c'],
+                    borderWidth: 2
+                }]
+            },
+            options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // Patients by department
+        new Chart(document.getElementById('deptChart'), {
+            type: 'bar',
+            data: {
+                labels: deptLabels,
+                datasets: [{
+                    label: 'Patients',
+                    data: deptData,
+                    backgroundColor: 'rgba(0,201,167,0.7)',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: { indexAxis: 'y', maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Doctor workload
+        new Chart(document.getElementById('workloadChart'), {
+            type: 'bar',
+            data: {
+                labels: workLabels,
+                datasets: [{
+                    label: 'Appointments',
+                    data: workData,
+                    backgroundColor: 'rgba(243,156,18,0.75)',
+                    borderRadius: 6,
+                    maxBarThickness: 40
+                }]
+            },
+            options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } } }
+        });
+    </script>
+
     <!-- === UPDATED JAVASCRIPT === -->
     <script>
         // --- Search Bar Functionality ---

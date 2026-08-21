@@ -1,0 +1,48 @@
+/* ============================================================
+   HMS Portal - Interactive Calendar Slot Picker
+   ============================================================ */
+.calendar-picker {
+    background: var(--surface); border-radius: 16px;
+    border: 1px solid var(--border); overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; background: var(--primary); color: white;
+}
+.cal-header button {
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    width: 32px; height: 32px; border-radius: 8px;
+    cursor: pointer; transition: background 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.cal-header button:hover { background: rgba(255,255,255,0.3); }
+.cal-header h6 { margin: 0; font-weight: 600; font-size: 1rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); }
+.cal-day-header { text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; background: var(--surface); }
+.cal-day {
+    text-align: center; padding: 10px 0; font-size: 0.88rem; cursor: pointer;
+    background: var(--surface); transition: all 0.15s;
+    color: var(--text);
+}
+.cal-day:hover { background: var(--accent-light); }
+.cal-day.today { font-weight: 700; color: var(--primary); }
+.cal-day.other-month { color: var(--text-muted); opacity: 0.4; }
+.cal-day.selected { background: var(--primary); color: white; border-radius: 50%; }
+.cal-day.unavailable { opacity: 0.3; cursor: not-allowed; }
+.cal-day.available { cursor: pointer; }
+.cal-day.available:hover { background: var(--accent); color: white; }
+.cal-slots {
+    padding: 16px 20px; border-top: 1px solid var(--border);
+    animation: slotFadeIn 0.25s ease;
+}
+.cal-slots h6 { font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+.slot-btn {
+    display: inline-block; padding: 8px 18px; margin: 4px 6px 4px 0;
+    border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 0.85rem;
+    cursor: pointer; transition: all 0.2s; font-weight: 500;
+}
+.slot-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--accent-light); }
+.slot-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+@keyframes slotFadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }

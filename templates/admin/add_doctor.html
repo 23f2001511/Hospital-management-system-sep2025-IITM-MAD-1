@@ -64,6 +64,7 @@
           </div>
 
           <form action="#" method="POST" class="row g-4" id="add-doctor-panel">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <!-- Full Name & Email -->
             <div class="col-md-6">
               <label class="form-label">Full Name</label>

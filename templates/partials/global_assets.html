@@ -1,0 +1,15 @@
+<!-- Global app assets: dark mode, toasts, tilt, count-up -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+
+<div class="dark-toggle" title="Toggle dark mode" style="margin-left:8px;">
+    <i class="bi bi-moon-stars-fill dark-toggle-icon"></i>
+</div>
+
+<!-- Flash messages are converted to animated toasts -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+  <div data-flash-message="{{ message }}" data-flash-category="{{ category }}"></div>
+  {% endfor %}
+{% endwith %}
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>

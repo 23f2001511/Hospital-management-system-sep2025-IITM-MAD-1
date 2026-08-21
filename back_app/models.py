@@ -50,6 +50,17 @@ class Doctor(db.Model):
     appointments = db.relationship('Appointment', backref='doctor')
     availabilities = db.relationship('DoctorAvailability', backref='doctor', cascade="all, delete-orphan")
 
+    @property
+    def average_rating(self):
+        ratings = [r.rating for r in self.ratings] if self.ratings else []
+        if not ratings:
+            return 0
+        return round(sum(ratings) / len(ratings), 1)
+
+    @property
+    def rating_count(self):
+        return len(self.ratings) if self.ratings else 0
+
 # 4. Patients Table (Specific details for patients)
 class Patient(db.Model):
     __tablename__ = 'patient' 
@@ -112,4 +123,74 @@ class DoctorAvailability(db.Model):
     start_time_after_lunch = db.Column(db.Time, nullable=True)
     end_time_after_lunch = db.Column(db.Time, nullable=True)
     is_available = db.Column(db.Boolean, default=True)
+
+# 9. Chat Messages Table (Scoped to a single appointment)
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_message'
+    id = db.Column(db.Integer, primary_key=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=True)
+    file_url = db.Column(db.String(300), nullable=True)
+    file_name = db.Column(db.String(200), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    appointment = db.relationship('Appointment', backref=db.backref('messages', cascade="all, delete-orphan"))
+    sender = db.relationship('User', backref=db.backref('chat_messages', lazy='dynamic'))
+
+# 10. Video Consultation Rooms Table
+class VideoRoom(db.Model):
+    __tablename__ = 'video_room'
+    id = db.Column(db.Integer, primary_key=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False, unique=True)
+    room_name = db.Column(db.String(200), unique=True, nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending / active / ended
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, nullable=True)
+    ended_at = db.Column(db.DateTime, nullable=True)
+
+    appointment = db.relationship('Appointment', backref=db.backref('video_room', uselist=False))
+
+# 11. In-App Notifications Table
+class Notification(db.Model):
+    __tablename__ = 'notification'
+    id = db.Column(db.Integer, primary_key=True)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    title = db.Column(db.String(150), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    link = db.Column(db.String(300), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    recipient = db.relationship('User', backref=db.backref('notifications', lazy='dynamic'))
+
+# 12. Medical Report / Lab File Attachments Table
+class ReportFile(db.Model):
+    __tablename__ = 'report_file'
+    id = db.Column(db.Integer, primary_key=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False)
+    filename = db.Column(db.String(300), nullable=False)
+    original_name = db.Column(db.String(200), nullable=False)
+    file_type = db.Column(db.String(50), nullable=False)
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    appointment = db.relationship('Appointment', backref=db.backref('report_files', cascade="all, delete-orphan"))
+    uploader = db.relationship('User')
+
+# 13. Doctor Ratings & Reviews Table
+class DoctorRating(db.Model):
+    __tablename__ = 'doctor_rating'
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=False, unique=True)
+    rating = db.Column(db.Integer, nullable=False)  # 1-5
+    review = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    doctor = db.relationship('Doctor', backref=db.backref('ratings', cascade="all, delete-orphan"))
+    patient = db.relationship('Patient', backref=db.backref('ratings', cascade="all, delete-orphan"))
+    appointment = db.relationship('Appointment', backref=db.backref('rating', uselist=False))
 

@@ -52,6 +52,7 @@
       </div>
 
       <form id="patientRegisterForm" action="{{url_for('main.register')}}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-floating mb-3">
           <input type="text" class="form-control" id="registerName" name="full_name" placeholder="John Doe" required>
           <label for="registerName" ><i class="bi bi-person-fill me-2"></i>Full Name</label>

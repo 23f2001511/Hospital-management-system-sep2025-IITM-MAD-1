@@ -51,10 +51,11 @@
                     <h4 class="mb-0">Doctor Dashboard</h4>
                     <div class="d-flex align-items-center ms-auto">
                         <button class="btn btn-outline-info">
-                           <a href="{{ url_for('set_availability' , doctor_id=current_user.id) }}" class="text-decoration-none text-primary">
+                           <a href="{{ url_for('main.set_availability') }}" class="text-decoration-none text-primary">
                             <i class="bi bi-clock-fill me-1"></i> Provide Availability
                             </a>
                         </button>
+                        {% include 'partials/notification_bell.html' %}
                         <ul class="navbar-nav ms-3">
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -84,6 +85,43 @@
                     {% endfor %}
                   {% endif %}
                 {% endwith %}
+
+                <!-- STAT CARDS -->
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card stat-upcoming">
+                            <div class="card-body">
+                                <div class="icon icon-pulse"><i class="bi bi-calendar-check-fill"></i></div>
+                                <div>
+                                    <h5 class="card-title">Upcoming Appointments</h5>
+                                    <p class="card-text stat-num" data-count="{{t_upcomming_appt}}">{{t_upcomming_appt}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card stat-completed">
+                            <div class="card-body">
+                                <div class="icon icon-pulse"><i class="bi bi-check2-circle"></i></div>
+                                <div>
+                                    <h5 class="card-title">Completed</h5>
+                                    <p class="card-text stat-num" data-count="{{t_done_appt}}">{{t_done_appt}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card stat-doctors">
+                            <div class="card-body">
+                                <div class="icon icon-pulse"><i class="bi bi-people-fill"></i></div>
+                                <div>
+                                    <h5 class="card-title">Assigned Patients</h5>
+                                    <p class="card-text stat-num" data-count="{{t_done_appt}}">{{t_done_appt}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Upcoming Appointments -->
 
@@ -149,7 +187,8 @@
                                                     <h5 class="modal-title" id="addHistoryLabel_{{ appointment.id }}">Add Patient History</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                                <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST">
+                                                <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST" enctype="multipart/form-data">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                     <div class="modal-body">
                                                         <div class="patient-info mb-4 p-3 bg-light rounded border">
                                                             <h6 class="mb-1">
@@ -202,6 +241,12 @@
                                                                    
                                                                 </div>
                                                             </div>
+                                                        </div>
+
+                                                        <div class="mt-3">
+                                                            <label class="form-label text-primary fw-semibold">ATTACH LAB / SCAN FILES (PDF, images, doc)</label>
+                                                            <input type="file" class="form-control" name="report_file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.txt">
+                                                            <small class="text-muted">Max 10 MB per file.</small>
                                                         </div>
                                                     </div>
                                                     
@@ -288,7 +333,8 @@
                                                     <h5 class="modal-title" id="updateHistoryLabel_{{ appointment.id }}">Update Patient History</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                                <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST">
+                                                <form action="{{ url_for('main.save_patient_history', appointment_id=appointment.id) }}" method="POST" enctype="multipart/form-data">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                     <div class="modal-body">
                                                         <div class="patient-info mb-4 p-3 bg-light rounded border">
                                                             <h6 class="mb-1">
@@ -348,9 +394,26 @@
 
                                                                         </div>
                                                                        
-                                                                    </div
-                                                                </div>
+</div
                                                             </div>
+                                                        </div>
+
+                                                        <div class="mt-3">
+                                                            <label class="form-label text-primary fw-semibold">ATTACH LAB / SCAN FILES (PDF, images, doc)</label>
+                                                            <input type="file" class="form-control" name="report_file" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.txt">
+                                                            <small class="text-muted">Max 10 MB per file.</small>
+                                                            {% if appointment.report_files %}
+                                                            <div class="mt-2">
+                                                                <small class="text-muted">Existing files:</small>
+                                                                {% for rf in appointment.report_files %}
+                                                                <div class="d-flex align-items-center gap-2 mt-1">
+                                                                    <a href="{{ url_for('static', filename='uploads/reports/' + rf.filename) }}" target="_blank" class="small"><i class="bi bi-paperclip"></i> {{ rf.original_name }}</a>
+                                                                    <button type="button" class="btn btn-link text-danger p-0 small" onclick="deleteReportFile({{ rf.id }}, this)"><i class="bi bi-trash"></i></button>
+                                                                </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
                                                     </div>
 
                                                     <div class="modal-footer">
@@ -385,6 +448,21 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../static/js/dyanamic.js"></script>
+    <script>
+        function deleteReportFile(fileId, btn) {
+            if (!confirm('Delete this file?')) return;
+            fetch('/report_file/delete/' + fileId, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+            }).then(function (r) {
+                if (r.ok) {
+                    btn.closest('div').remove();
+                } else {
+                    alert('Failed to delete file.');
+                }
+            }).catch(function () { alert('Failed to delete file.'); });
+        }
+    </script>
 
 </body>
 </html>

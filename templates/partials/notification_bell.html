@@ -1,0 +1,100 @@
+{% include 'partials/global_assets.html' %}
+<div class="position-relative me-3" style="cursor:pointer;">
+    <a href="#" onclick="toggleNotificationDropdown(event)" class="text-dark" title="Notifications">
+        <i class="bi bi-bell fs-4 position-relative">
+            <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;font-size:0.6rem;">0</span>
+        </i>
+    </a>
+    <div id="notifDropdown" class="dropdown-menu dropdown-menu-end shadow" style="display:none;position:absolute;right:0;top:40px;width:340px;max-height:420px;overflow-y:auto;z-index:2000;">
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+            <strong>Notifications</strong>
+            <a href="#" onclick="markAllNotificationsRead(event)" class="small text-primary text-decoration-none">Mark all read</a>
+        </div>
+        <div id="notifList" class="py-1">
+            <div class="text-center text-muted small py-3">Loading...</div>
+        </div>
+        <div class="text-center py-2 border-top">
+            <a href="{{ url_for('main.notification_list') }}" class="small text-primary text-decoration-none">View all notifications</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleNotificationDropdown(event) {
+        event.preventDefault();
+        var dd = document.getElementById('notifDropdown');
+        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+        if (dd.style.display === 'block') loadNotifications();
+    }
+
+    document.addEventListener('click', function (e) {
+        var dd = document.getElementById('notifDropdown');
+        if (dd && !dd.contains(e.target) && !e.target.closest('.position-relative')) {
+            dd.style.display = 'none';
+        }
+    });
+
+    function loadNotifications() {
+        fetch('{{ url_for("main.notification_list") }}?page=1&format=json', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            var list = document.getElementById('notifList');
+            if (!data.notifications || data.notifications.length === 0) {
+                list.innerHTML = '<div class="text-center text-muted small py-3">No notifications</div>';
+                return;
+            }
+            var html = '';
+            data.notifications.forEach(function (n) {
+                var cls = n.is_read ? '' : 'unread';
+                html += '<a href="' + (n.link || '#') + '" class="d-block dropdown-item py-2 border-bottom small ' + cls + '" style="white-space:normal;">'
+                    + '<div class="fw-bold">' + n.title + '</div>'
+                    + '<div class="text-muted">' + n.message + '</div>'
+                    + '<div class="text-muted" style="font-size:0.75rem;">' + (n.created_at || '') + '</div>'
+                    + '</a>';
+            });
+            list.innerHTML = html;
+            document.querySelectorAll('#notifList a').forEach(function (a) {
+                a.addEventListener('click', function () {
+                    var m = (this.getAttribute('href') || '').match(/\/notifications\/mark_read\/(\d+)/);
+                    if (m) markNotificationRead(m[1]);
+                });
+            });
+        }).catch(function () {
+            document.getElementById('notifList').innerHTML = '<div class="text-center text-muted small py-3">Could not load</div>';
+        });
+    }
+
+    function updateUnreadCount() {
+        fetch('{{ url_for("main.notification_unread_count") }}')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var badge = document.getElementById('notifBadge');
+                if (data.unread_count > 0) {
+                    badge.style.display = 'inline';
+                    badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
+    }
+
+    function markNotificationRead(id) {
+        fetch('/notifications/mark_read/' + id, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+        }).then(updateUnreadCount);
+    }
+
+    function markAllNotificationsRead(event) {
+        event.preventDefault();
+        fetch('{{ url_for("main.mark_all_notifications_read") }}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+        }).then(function () {
+            loadNotifications();
+            updateUnreadCount();
+        });
+    }
+
+    updateUnreadCount();
+</script>

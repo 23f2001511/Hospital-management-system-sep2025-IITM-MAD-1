@@ -1,73 +1,107 @@
 # 🏥 Hospital Management System (HMS)
 
-A web-based Hospital Management System built using **Flask + SQLAlchemy** to manage Patients, Doctors, Appointments and Medical Records digitally.  
-This application simplifies healthcare workflow by providing **online appointment booking, medical history tracking, doctor availability, reports and admin controls**.
+A full-featured web-based Hospital Management System built with **Flask + SQLAlchemy + Jinja2 + Bootstrap**, supporting **Admin, Doctor, and Patient** roles with real-time chat, video consultations, and more.
 
 ---
 
-## 🚀 Main Features of this Project 
+## 🚀 Deployment Instructions (Free)
 
-### 👤 Patient Dashboard
-- Register & Login securely
-- Book appointments with available doctors
-- View doctor profiles & departments
-- View/download medical reports with prescription
-- Cancel appointments & view booking history
+### Option 1: Local Development
 
-### 🩺 Doctor Dashboard
-- Manage assigned patients
-- Update treatment history & prescriptions
-- Add medicines dynamically
-- View past reports and appointments
-- Set weekly availability (Morning/Evening Slots)
+```bash
+# 1. Clone the project
+cd hms-portal
 
-### 🔐 Admin Dashboard
-- Add / Edit / Delete Doctors 
-- Edit / Delete / Patients
-- Block/Unblock all users
-- View all appointments in hospital and manage it
-- Check reports of Patients
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env to set SECRET_KEY (at minimum)
+
+# 4. Run the app
+python app.py
+
+# 5. Open http://127.0.0.1:5000
+# Default admin credentials (created on first boot):
+#   Email: Ehtesham@hms.com
+#   Password: Admin@2024
+```
+
+### Option 2: Render (Free Hosting)
+
+1. Push the project to a GitHub repository.
+2. Go to [dashboard.render.com](https://dashboard.render.com) → **New +** → **Web Service**.
+3. Connect your GitHub repo. Render will auto-detect the `render.yaml`.
+4. Set the following environment variables:
+   - `SECRET_KEY`: Generate a random one (`python -c "import secrets; print(secrets.token_hex(32))"`)
+   - `DATABASE_URL`: **Use a free external PostgreSQL provider** (see below)
+5. Render will build and deploy automatically.
+
+### External PostgreSQL (Free, Never Expires)
+
+Render's free Postgres expires after ~30 days. **Use one of these instead:**
+
+- **[Neon](https://neon.tech)** — Free tier: 0.5 GB storage, never expires.
+- **[Supabase](https://supabase.com)** — Free tier: 500 MB, never expires.
+
+1. Create a free account on Neon or Supabase.
+2. Create a new database and copy the connection string (looks like `postgresql://user:password@host/dbname`).
+3. Set it as the `DATABASE_URL` environment variable in Render **and remove the `?sslmode=require` query parameter** if present (SQLAlchemy handles it).
+
+The app switches automatically between SQLite (local) and PostgreSQL (production) based on the `DATABASE_URL` scheme.
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `SECRET_KEY` | Yes | `dev-secret-key-change-me` | Flask session signing key. Use a long random string in production. |
+| `DATABASE_URL` | No | `sqlite:///hospital_management.db` | DB connection string. `postgresql://...` for production. |
+| `MAIL_SERVER` | No | `smtp.gmail.com` | SMTP server for email notifications (optional). |
+| `MAIL_PORT` | No | `587` | SMTP port. |
+| `MAIL_USE_TLS` | No | `true` | Use TLS for SMTP. |
+| `MAIL_USERNAME` | No | — | Gmail address (or other SMTP user). |
+| `MAIL_PASSWORD` | No | — | Gmail app password (not your regular password). |
+| `MAIL_DEFAULT_SENDER` | No | same as `MAIL_USERNAME` | From address for outgoing emails. |
+
+If SMTP is not configured, emails are logged to the console instead of crashing.
 
 ---
 
-## 🏗 Tech Stack Used
+## 🏗 Tech Stack
 
 | Component | Technology |
-|----------|------------|
-| Backend | Flask, Python |
-| Database ORM | SQLAlchemy + SQLite |
-| Frontend | HTML, CSS, Bootstrap, JS(Basic for Dyanamic)|
-| Templating Engine | Jinja2 |
-| Authentication | Flask-Login |
-| PDF Report Support | Browser print styling |
+|---|---|
+| Backend | Flask 3.1, Python 3.13 |
+| Database | SQLAlchemy 2.0 + SQLite (dev) / PostgreSQL (prod) |
+| Real-time | Flask-SocketIO + python-socketio + eventlet |
+| Frontend | Bootstrap 5, Jinja2, Chart.js, Jitsi Meet API |
+| Email | Flask-Mail (GMP only when configured) |
+| PDF | fpdf2 |
+| Auth | Flask-Login, Werkzeug password hashing, Flask-WTF CSRF |
 
+## 🔑 Default Accounts
 
----
+| Role | Email | Password |
+|---|---|---|
+| Admin | `Ehtesham@hms.com` | `Admin@2024` |
 
-## 📁 Folder Structure
+Doctors and patients must be registered via the app (admin can add doctors; patients self-register).
 
-MAD-1-WEB-APP/
-│
-├── back_app/
-│   ├── models.py            # Contains all database tables using SQLAlchemy
-│   ├── routes.py            # Handles routing, backend logic & page control
-│   └── all_function.py      # Helper utility functions used across the system
-│
-├── instance/
-│   └── hospital_management.db   # SQLite database / configuration directory
-│
-├── static/                       # Frontend assets for UI enhancement
-│   ├── css/                      # Stylesheets
-│   ├── img/                      # Images & icons
-│   └── js/                       # JavaScript files
-│
-├── templates/                    # HTML pages for each user role
-│   ├── admin/                    # Admin dashboard & control pages
-│   ├── auth/                     # Login, Register, Profile
-│   ├── doctor/                   # Doctor panel pages
-│   ├── patient/                  # Appointment + Report UI
-│   └── home.html                 # Landing page
-│
-├── app.py                        # Runs Flask server & initializes the application
-└── README.md                     # Project documentation
+## 📁 Project Structure
 
+```
+back_app/
+  models.py       # Database models (User, Doctor, Patient, Appointment, ChatMessage, VideoRoom, Notification, ReportFile, DoctorRating, etc.)
+  routes.py       # All route handlers organized by role
+  all_funtion.py  # Utility functions (file upload, notification helpers)
+  socketio_events.py  # SocketIO event handlers (chat, typing, notifications)
+  emailer.py      # Email sending with console fallback
+app.py            # Flask app factory, SocketIO/CSRF/Mail init
+templates/        # Jinja2 templates organized by role
+static/           # CSS, JS, images, uploads
+```
+
+## ✨ What's New (Full Upgrade)
+
+See [CHANGELOG.md](./CHANGELOG.md) for a detailed list of all features added across all four phases.

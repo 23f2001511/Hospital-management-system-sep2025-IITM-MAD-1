@@ -103,6 +103,12 @@
                 <div class="col-md-9">
                     <h3 class="fw-bold mb-0">Dr. {{ doctor.user.full_name }}</h3>
                     <p class="text-primary mb-1 fw-semibold">{{ doctor.specialization }}</p>
+                    <div class="rating-stars mb-2">
+                        {% set avg = doctor.average_rating %}
+                        {% for i in range(5) %}{% if i < avg %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}
+                        <span class="text-muted" style="font-size:0.85rem;">{{ avg }} ({{ doctor.rating_count }} reviews)</span>
+                        <a href="{{ url_for('main.doctor_reviews', doctor_id=doctor.id) }}" class="small text-primary ms-2">View reviews</a>
+                    </div>
                     <p class="mb-1"><b>Experience:</b> {{ doctor.experience_years }}+ Years</p>
                     <p><b>Qualification :</b> {{ doctor.qualification }}</p>
                     <p><b>Contact number  :</b> +91-{{ doctor.user.phone_number }}</p>

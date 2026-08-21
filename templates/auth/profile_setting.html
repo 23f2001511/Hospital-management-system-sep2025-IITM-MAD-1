@@ -102,7 +102,8 @@
                         <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
                             <h5 class="mb-4">Update Your Information</h5>
                             <!-- IMPORTANT: Added enctype for file uploads -->
-                            <form method="POST" action="{{ url_for('main.update_profile') }}" enctype="multipart/form-data"> 
+                            <form method="POST" action="{{ url_for('main.update_profile') }}" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="row">
                                     <!-- Profile Picture Section -->
                                     <div class="col-md-3 text-center mb-4 mb-md-0">
@@ -189,6 +190,7 @@
                         <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
                             <h5 class="mb-3">Change Your Password</h5>
                              <form method="POST" action="{{ url_for('main.change_password') }}">
+                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                  <div class="row justify-content-center">
                                      <div class="col-md-8">
                                          <div class="form-floating mb-3">

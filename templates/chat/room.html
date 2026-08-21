@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat | HMS Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; margin: 0; height: 100vh; display: flex; flex-direction: column; }
+        .chat-header {
+            background: #1a5c8f; color: white; padding: 14px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .chat-header h5 { margin: 0; font-weight: 600; }
+        .chat-header .btn-back { color: rgba(255,255,255,0.8); text-decoration: none; margin-right: 12px; }
+        .chat-header .btn-back:hover { color: white; }
+        .chat-body { flex: 1; display: flex; flex-direction: column; max-width: 900px; margin: 0 auto; width: 100%; }
+        .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 75%; display: flex; flex-direction: column; }
+        .msg.sent { align-self: flex-end; }
+        .msg.received { align-self: flex-start; }
+        .msg-bubble {
+            padding: 10px 16px; border-radius: 16px; font-size: 0.9rem; line-height: 1.5;
+            position: relative; word-wrap: break-word;
+        }
+        .msg.sent .msg-bubble { background: #1a5c8f; color: white; border-bottom-right-radius: 4px; }
+        .msg.received .msg-bubble { background: white; color: #1a2433; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .msg-meta { font-size: 0.7rem; color: #6b7c93; margin-top: 4px; display: flex; gap: 8px; }
+        .msg.sent .msg-meta { justify-content: flex-end; }
+        .msg-file { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; margin-top: 6px; text-decoration: none; color: inherit; }
+        .msg.sent .msg-file { background: rgba(255,255,255,0.15); color: white; }
+        .msg.received .msg-file { background: #f0f4f8; color: #1a2433; }
+        .typing-indicator { display: flex; gap: 4px; padding: 8px 16px; align-items: center; font-size: 0.8rem; color: #6b7c93; }
+        .typing-indicator .dots { display: flex; gap: 3px; }
+        .typing-indicator .dots span { width: 6px; height: 6px; background: #6b7c93; border-radius: 50%; animation: bounce 1.2s infinite; }
+        .typing-indicator .dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator .dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%,60%,100%{ transform: translateY(0); } 30%{ transform: translateY(-6px); } }
+        .chat-input-area {
+            background: white; border-top: 1px solid #e9ecef; padding: 12px 20px;
+            display: flex; gap: 10px; align-items: center;
+        }
+        .chat-input-area input { flex: 1; border: 1px solid #e9ecef; border-radius: 12px; padding: 10px 16px; font-size: 0.9rem; outline: none; }
+        .chat-input-area input:focus { border-color: #1a5c8f; }
+        .btn-attach { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e9ecef; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #6b7c93; transition: all 0.2s; }
+        .btn-attach:hover { background: #f0f4f8; color: #1a5c8f; }
+        .btn-send { width: 40px; height: 40px; border-radius: 50%; border: none; background: #1a5c8f; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .btn-send:hover { background: #0f3a5a; }
+        .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+        .video-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; cursor: pointer; font-size: 0.85rem; text-decoration: none; transition: all 0.2s; }
+        .video-btn:hover { background: rgba(255,255,255,0.2); color: white; }
+        .unread-badge { font-size: 0.65rem; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; margin-left: 6px; }
+        @media (max-width: 768px) {
+            .msg { max-width: 85%; }
+            .chat-header { padding: 12px 16px; }
+            .chat-input-area { padding: 10px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <div style="display:flex;align-items:center;">
+            <a href="{{ request.referrer or url_for('main.booked_appointment_list' if current_user.role == 'patient' else 'main.manage_appointment') }}" class="btn-back"><i class="bi bi-arrow-left fs-5"></i></a>
+            <div>
+                <h5><i class="bi bi-chat-dots-fill me-2"></i>Chat with {{ appointment.doctor.user.full_name if current_user.role == 'patient' else appointment.patient.user.full_name }}</h5>
+                <small style="opacity:0.7;">Appointment #{{ appointment.id }} - {{ appointment.appointment_datetime.strftime('%b %d, %Y %H:%M') }}</small>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <a href="{{ url_for('main.video_room', appointment_id=appointment.id) }}" class="video-btn" target="_blank">
+                <i class="bi bi-camera-video-fill"></i> Video Call
+            </a>
+        </div>
+    </div>
+
+    <div class="chat-body">
+        <div class="messages-container" id="messagesContainer">
+            {% for msg in messages %}
+            <div class="msg {{ 'sent' if msg.sender_id == current_user.id else 'received' }}" data-msg-id="{{ msg.id }}">
+                <div class="msg-bubble">
+                    {% if msg.message %}<div>{{ msg.message }}</div>{% endif %}
+                    {% if msg.file_url %}
+                    <a href="{{ msg.file_url }}" target="_blank" class="msg-file">
+                        <i class="bi bi-paperclip"></i> {{ msg.file_name or 'View attachment' }}
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="msg-meta">
+                    <span>{{ msg.sender.full_name }}</span>
+                    <span>{{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}</span>
+                    {% if msg.sender_id == current_user.id %}
+                    <span class="read-status">{{ '✓✓' if msg.is_read else '✓' }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="typingContainer" class="typing-indicator" style="display:none;padding:4px 20px;">
+            <span id="typingName"></span> typing<span class="dots"><span></span><span></span><span></span></span>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="file" id="fileInput" style="display:none" accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx,.txt">
+            <button class="btn-attach" onclick="document.getElementById('fileInput').click()" title="Attach file (max 10 MB)">
+                <i class="bi bi-paperclip"></i>
+            </button>
+            <input type="text" id="messageInput" placeholder="Type a message..." autofocus>
+            <button class="btn-send" id="sendBtn" onclick="sendMessage()"><i class="bi bi-send-fill"></i></button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const appointmentId = {{ appointment.id }};
+        const currentUserId = {{ current_user.id }};
+        const csrfToken = '{{ csrf_token() }}';
+
+        const socket = io();
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingContainer = document.getElementById('typingContainer');
+        const typingName = document.getElementById('typingName');
+        const fileInput = document.getElementById('fileInput');
+
+        let typingTimer = null;
+        let isTyping = false;
+
+        socket.on('connect', function() {
+            socket.emit('join_appointment_room', { appointment_id: appointmentId });
+        });
+
+        socket.on('new_message', function(data) {
+            appendMessage(data);
+            // Mark as read
+            socket.emit('mark_read', { appointment_id: appointmentId });
+        });
+
+        socket.on('typing', function(data) {
+            if (data.is_typing) {
+                typingName.textContent = data.name;
+                typingContainer.style.display = 'flex';
+            } else {
+                typingContainer.style.display = 'none';
+            }
+        });
+
+        function appendMessage(data) {
+            const div = document.createElement('div');
+            div.className = 'msg ' + (data.sender_id === currentUserId ? 'sent' : 'received');
+            div.dataset.msgId = data.id;
+            let html = '<div class="msg-bubble">';
+            if (data.message) html += '<div>' + escapeHtml(data.message) + '</div>';
+            if (data.file_url) {
+                html += '<a href="' + data.file_url + '" target="_blank" class="msg-file"><i class="bi bi-paperclip"></i> ' + (data.file_name || 'View attachment') + '</a>';
+            }
+            html += '</div>';
+            html += '<div class="msg-meta">';
+            html += '<span>' + escapeHtml(data.sender_name) + '</span>';
+            html += '<span>' + (data.created_at ? data.created_at.substring(11, 16) : '') + '</span>';
+            if (data.sender_id === currentUserId) {
+                html += '<span class="read-status">✓</span>';
+            }
+            html += '</div>';
+            div.innerHTML = html;
+            messagesContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            socket.emit('send_message', {
+                appointment_id: appointmentId,
+                message: text
+            });
+            messageInput.value = '';
+            sendBtn.disabled = true;
+            stopTyping();
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        messageInput.addEventListener('input', function() {
+            sendBtn.disabled = !this.value.trim();
+            if (!isTyping) {
+                isTyping = true;
+                socket.emit('typing', { appointment_id: appointmentId, is_typing: true });
+            }
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function() {
+                stopTyping();
+            }, 1500);
+        });
+
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function stopTyping() {
+            isTyping = false;
+            socket.emit('typing', { appointment_id: appointmentId, is_typing: false });
+        }
+
+        // File upload
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File too large. Maximum 10 MB.');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('csrf_token', csrfToken);
+            fetch('/chat/' + appointmentId + '/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.url) {
+                    socket.emit('send_message', {
+                        appointment_id: appointmentId,
+                        message: '',
+                        file_url: data.url,
+                        file_name: data.name
+                    });
+                } else {
+                    alert(data.error || 'Upload failed.');
+                }
+            })
+            .catch(() => alert('Upload failed.'));
+            this.value = '';
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Read messages on page load
+        socket.on('connect', function() {
+            setTimeout(function() {
+                socket.emit('mark_read', { appointment_id: appointmentId });
+            }, 500);
+        });
+
+        scrollToBottom();
+    </script>
+</body>
+</html>

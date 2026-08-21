@@ -108,6 +108,7 @@
         <p>Reset your password via your resistered email</p>
         
         <form action='/forgot_password' method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
             <div class="form-group">
                 <label for="email">Email Address</label>

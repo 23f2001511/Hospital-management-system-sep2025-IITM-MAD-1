@@ -91,6 +91,7 @@
                             <!-- ======= FORM ======= -->
                             <!-- Note: Add your url_for() action and method -->
                             <form action="{{url_for('main.edit_patient' , patient_id = patient.id)}}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="row g-4">
                                     <div class="col-md-6">
                                         <label for="patientName" class="form-label">Full Name</label>

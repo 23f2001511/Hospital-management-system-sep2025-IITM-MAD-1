@@ -77,7 +77,7 @@
                     <!-- Title badal diya hai -->
                     <h4 class="mb-0">Welcome, Dr. {{current_user.full_name}}</h4>
                     <div class="d-flex align-items-center ms-auto">
-                        
+                        {% include 'partials/notification_bell.html' %}
                         <ul class="navbar-nav ms-3">
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -162,6 +162,14 @@
                                             <i class="bi bi-x-circle"></i> Cancel
                                             </a>
 
+                                            <a href="{{ url_for('main.chat_room', appointment_id=appointment.id) }}"
+                                               class="btn btn-sm btn-info">
+                                                <i class="bi bi-chat-dots-fill"></i> Chat
+                                            </a>
+                                            <a href="{{ url_for('main.video_room', appointment_id=appointment.id) }}"
+                                               class="btn btn-sm btn-success" target="_blank">
+                                                <i class="bi bi-camera-video-fill"></i> Video
+                                            </a>
                                         </td>
                                     </tr>
                                
@@ -220,10 +228,16 @@
 
                                         {% if appointment.status.lower() == 'completed' %}
                                             <td>
-                                                <a href="{{ url_for('main.view_patient_report', appointment_id=appointment.id) }}"
-                                                class="btn btn-sm btn-primary">
-                                                    <i class="bi bi-eye"></i> View Report
-                                                </a>
+                                                <div class="d-flex gap-1">
+                                                    <a href="{{ url_for('main.view_patient_report', appointment_id=appointment.id) }}"
+                                                    class="btn btn-sm btn-primary">
+                                                        <i class="bi bi-eye"></i> View Report
+                                                    </a>
+                                                    <a href="{{ url_for('main.chat_room', appointment_id=appointment.id) }}"
+                                                    class="btn btn-sm btn-info">
+                                                        <i class="bi bi-chat-dots-fill"></i> Chat
+                                                    </a>
+                                                </div>
                                             </td>
                                         {% elif appointment.status.lower() == 'cancelled' %}
                                             <td><span class="badge bg-danger">No Report</span></td>

@@ -1,11 +1,14 @@
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, jsonify, send_from_directory, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash , generate_password_hash
 from werkzeug.utils import secure_filename
-from datetime import time , datetime
+from datetime import time , datetime , date
 from .models import *
-from .all_funtion import save_picture  , create_admin_user 
+from .all_funtion import save_picture  , create_admin_user , save_upload , create_notification , notify_other_party
 from flask import Blueprint
+import uuid
+import os
+from .emailer import send_appointment_email
 
 
 
@@ -33,6 +36,27 @@ def register():
         gender = request.form.get('gender')
         role = request.form.get('role')
 
+        # Server-side validation
+        if not full_name or not email or not password or not phone_number:
+            flash('All fields are required.', 'danger')
+            return redirect(url_for('main.register'))
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long.', 'danger')
+            return redirect(url_for('main.register'))
+        if '@' not in email or '.' not in email:
+            flash('Please enter a valid email address.', 'danger')
+            return redirect(url_for('main.register'))
+        try:
+            if age is None or int(age) <= 0 or int(age) > 120:
+                flash('Please enter a valid age between 1 and 120.', 'danger')
+                return redirect(url_for('main.register'))
+        except (TypeError, ValueError):
+            flash('Please enter a valid age.', 'danger')
+            return redirect(url_for('main.register'))
+        if not phone_number.isdigit() or len(phone_number) < 10:
+            flash('Please enter a valid 10-digit phone number.', 'danger')
+            return redirect(url_for('main.register'))
+
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Email already registered. Please log in.', 'warning')
@@ -45,7 +69,7 @@ def register():
             phone_number=phone_number,
             age=age,
             gender=gender,
-            role=role,
+            role='Patient',
         )
 
         add_patient = Patient(
@@ -68,7 +92,13 @@ def login():
         email = request.form.get('email')
         role = request.form.get('role')
         password = request.form.get('password')
+        if not email or not password or not role:
+            flash('Please fill in email, password and role.', 'danger')
+            return redirect(url_for('main.login'))
         user = User.query.filter_by(email=email).first()
+        if not user:
+            flash('Invalid email or password according to your selected role.', 'danger')
+            return redirect(url_for('main.login'))
         user_name = user.full_name
         if user and user.role.lower() == role.lower() and check_password_hash(user.password, password):
             login_user(user)
@@ -153,7 +183,7 @@ def change_password():
     return render_template("auth/profile_setting.html")
 
 
-@main.route("/appointment/update_status/<int:appointment_id>/<string:new_status>")
+@main.route("/appointment/update_status/<int:appointment_id>/<string:new_status>", methods=['GET', 'POST'])
 @login_required
 def update_appointment_status(appointment_id, new_status):
 
@@ -164,11 +194,58 @@ def update_appointment_status(appointment_id, new_status):
         return redirect(request.referrer)
 
     appointment = Appointment.query.get_or_404(appointment_id)
+
+    # Authorization: only admin, the assigned doctor, or the booking patient may change status
+    role = current_user.role.lower()
+    is_admin = role == 'admin'
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_admin or is_own_doctor or is_own_patient):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+
+    # Patients may only cancel; doctors may complete or cancel; admin may set any valid status
+    if role == 'patient' and new_status != 'Cancelled':
+        flash("Patients may only cancel appointments.", "danger")
+        return redirect(request.referrer)
+
+    old_status = appointment.status
     appointment.status = new_status
     db.session.commit()
 
+    # Notifications
+    title = f"Appointment {new_status}"
+    message = f"Appointment with {appointment.doctor.user.full_name} on {appointment.appointment_datetime.strftime('%Y-%m-%d %H:%M')} is now {new_status}."
+    recipients = set()
+    recipients.add(appointment.patient.user_id)
+    recipients.add(appointment.doctor.user_id)
+    for uid in recipients:
+        if uid != current_user.id:
+            create_notification(uid, title, message, url_for('main.view_appointment', appointment_id=appointment.id))
+
+    # Email notifications
+    event = new_status.lower()
+    try:
+        send_appointment_email(appointment, event)
+    except Exception as e:
+        print('Email error:', e)
+
     flash(f"Appointment marked as {new_status}", "success")
     return redirect(request.referrer)
+
+
+@main.route('/appointment/<int:appointment_id>')
+@login_required
+def view_appointment(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    role = current_user.role.lower()
+    is_admin = role == 'admin'
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_admin or is_own_doctor or is_own_patient):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+    return render_template('appointment/details.html', appointment=appointment)
 
 
 
@@ -181,11 +258,12 @@ def update_profile():
 
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
-            
-           
             if file.filename != '':
-                
-                filename = secure_filename(file.filename)
+                allowed = current_app.config['ALLOWED_IMAGE_EXTENSIONS']
+                ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+                if ext not in allowed:
+                    flash("Invalid image format. Allowed: png, jpg, jpeg, gif, webp", "danger")
+                    return redirect('update_profile')
                 picture_file = save_picture(file)
                 user.profile_picture = picture_file
 
@@ -269,7 +347,57 @@ def admin_dashboard():
     total_appointments = Appointment.query.count()
     total_doctors = Doctor.query.count()
     total_patients = Patient.query.count()
-    return render_template('admin/dashboard.html' , user=current_user , appointments=appointments , doctors=doctors , patients=patients , total_appointments=total_appointments , total_doctors=total_doctors , total_patients=total_patients)
+
+    # --- Analytics data (server-side, real queries) ---
+    # 1. Appointments booked per day (last 14 days)
+    from datetime import timedelta
+    today = date.today()
+    days = []
+    counts = []
+    for i in range(13, -1, -1):
+        d = today - timedelta(days=i)
+        days.append(d.strftime('%d %b'))
+        counts.append(Appointment.query.filter(db.func.date(Appointment.appointment_datetime) == d).count())
+    chart_appointments = {'labels': days, 'data': counts}
+
+    # 2. Patient count by department (via doctors in each department -> their patients)
+    dept_labels = []
+    dept_data = []
+    for dep in Department.query.all():
+        dept_labels.append(dep.name)
+        doctor_ids = [d.id for d in dep.doctors]
+        if doctor_ids:
+            count = Patient.query.join(Appointment, Appointment.patient_id == Patient.id)\
+                .filter(Appointment.doctor_id.in_(doctor_ids)).distinct().count()
+        else:
+            count = 0
+        dept_data.append(count)
+    chart_dept_patients = {'labels': dept_labels, 'data': dept_data}
+
+    # 3. Doctor workload (appointments handled)
+    doc_labels = []
+    doc_data = []
+    for doc in Doctor.query.all():
+        doc_labels.append(f"Dr. {doc.user.full_name[:12]}")
+        doc_data.append(Appointment.query.filter_by(doctor_id=doc.id).count())
+    chart_workload = {'labels': doc_labels, 'data': doc_data}
+
+    # Status breakdown for a doughnut
+    status_labels = ['Booked', 'Completed', 'Cancelled']
+    status_data = [
+        Appointment.query.filter_by(status='Booked').count(),
+        Appointment.query.filter_by(status='Completed').count(),
+        Appointment.query.filter_by(status='Cancelled').count(),
+    ]
+
+    return render_template('admin/dashboard.html', user=current_user, appointments=appointments,
+                           doctors=doctors, patients=patients,
+                           total_appointments=total_appointments, total_doctors=total_doctors,
+                           total_patients=total_patients,
+                           chart_appointments=chart_appointments,
+                           chart_dept_patients=chart_dept_patients,
+                           chart_workload=chart_workload,
+                           status_labels=status_labels, status_data=status_data)
 
 
 
@@ -284,8 +412,28 @@ def all_doctors():
     if current_user.role.lower() != 'admin':
         flash("you are nod admin access denied , DANGER!")
         return redirect(url_for('main.home'))
-    all_doctor = Doctor.query.all()
-    return render_template('/admin/all_doctors.html' , doctors = all_doctor)
+    page = request.args.get('page', 1, type=int)
+    per_page = 8
+    q = request.args.get('q', '').strip()
+    department = request.args.get('department', '').strip()
+    status = request.args.get('status', '').strip()
+
+    query = Doctor.query.join(User, Doctor.user_id == User.id).join(Department, Doctor.department_id == Department.id)
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(User.full_name.ilike(like), User.email.ilike(like), Doctor.specialization.ilike(like)))
+    if department:
+        query = query.filter(Doctor.department_id == int(department))
+    if status.lower() == 'active':
+        query = query.filter(Doctor.is_active.is_(True))
+    elif status.lower() == 'blocked':
+        query = query.filter(Doctor.is_active.is_(False))
+
+    doctors = query.order_by(User.full_name.asc()).paginate(page=page, per_page=per_page, error_out=False)
+    departments = Department.query.all()
+    return render_template('/admin/all_doctors.html', doctors=doctors, departments=departments,
+                           total=doctors.total, page=page, pages=doctors.pages,
+                           q=q, department=department, status=status)
 
 
 @main.route('/admin/patients',methods=['GET'])
@@ -294,8 +442,25 @@ def all_patients():
     if current_user.role.lower() != 'admin':
         flash("you are nod admin access denied , DANGER!")
         return redirect(url_for('main.home'))
-    all_patient = Patient.query.all()
-    return render_template('/admin/all_patients.html' , patients = all_patient)
+    page = request.args.get('page', 1, type=int)
+    per_page = 8
+    q = request.args.get('q', '').strip()
+    status = request.args.get('status', '').strip()
+
+    query = Patient.query.join(User, Patient.user_id == User.id)
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(User.full_name.ilike(like), User.email.ilike(like)))
+    if status.lower() == 'active':
+        query = query.filter(Patient.is_active.is_(True))
+    elif status.lower() == 'blocked':
+        query = query.filter(Patient.is_active.is_(False))
+
+    patients = query.order_by(User.full_name.asc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('/admin/all_patients.html', patients=patients,
+                           total=patients.total, page=page, pages=patients.pages,
+                           q=q, status=status)
+
 
 @main.route('/admin/appointments',methods=['GET'])
 @login_required
@@ -303,8 +468,35 @@ def all_appointments():
     if current_user.role.lower() != 'admin':
         flash("you are nod admin access denied , DANGER!")
         return redirect(url_for('main.home'))
-    all_appointment = Appointment.query.all()
-    return render_template('/admin/all_appointment.html' , appointments = all_appointment)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    q = request.args.get('q', '').strip()
+    status = request.args.get('status', '').strip()
+    date_from = request.args.get('date_from', '').strip()
+    date_to = request.args.get('date_to', '').strip()
+
+    query = Appointment.query
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(Appointment.patient.has(User.full_name.ilike(like)),
+                                    Appointment.doctor.has(User.full_name.ilike(like))))
+    if status:
+        query = query.filter(Appointment.status.ilike(f'%{status}%'))
+    if date_from:
+        try:
+            query = query.filter(Appointment.appointment_datetime >= datetime.strptime(date_from, '%Y-%m-%d'))
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            query = query.filter(Appointment.appointment_datetime <= datetime.strptime(date_to, '%Y-%m-%d') + __import__('datetime').timedelta(days=1))
+        except ValueError:
+            pass
+
+    all_appointment = query.order_by(Appointment.appointment_datetime.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('/admin/all_appointment.html', appointments=all_appointment,
+                           total=all_appointment.total, page=page, pages=all_appointment.pages,
+                           q=q, status=status, date_from=date_from, date_to=date_to)
 
 
 @main.route('/admin/add_doctor', methods=['GET', 'POST'])
@@ -405,7 +597,7 @@ def block_doctor(doctor_id):
     user = User.query.get_or_404(doctor.user_id)
     doctor.is_active = False
     db.session.commit()
-    return redirect(url_for('view_doctor', doctor_id=doctor.id))
+    return redirect(url_for('main.view_doctor', doctor_id=doctor.id))
 
 @main.route('/admin/unblock_doctor/<int:doctor_id>', methods=['POST','GET'])
 @login_required
@@ -418,7 +610,7 @@ def unblock_doctor(doctor_id):
     doctor.is_active = True
     db.session.commit()
     
-    return redirect(url_for('view_doctor', doctor_id=doctor.id))
+    return redirect(url_for('main.view_doctor', doctor_id=doctor.id))
 
 @main.route('/admin/edit_doctor/<int:doctor_id>', methods=['GET', 'POST'])
 @login_required
@@ -477,7 +669,7 @@ def block_patient(patient_id):
     patient.is_active = False
     db.session.commit()
     
-    return redirect(url_for('view_patient' , patient_id=patient.id))
+    return redirect(url_for('main.view_patient' , patient_id=patient.id))
 
 @main.route('/admin/unblock_patient/<int:patient_id>', methods=['POST','GET'])
 @login_required
@@ -490,7 +682,7 @@ def unblock_patient(patient_id):
     patient.is_active = True
     db.session.commit()
     
-    return redirect(url_for('view_patient' , patient_id=patient.id))
+    return redirect(url_for('main.view_patient' , patient_id=patient.id))
 
 @main.route('/admin/edit_patient/<int:patient_id>', methods=['GET', 'POST'])
 @login_required
@@ -529,8 +721,10 @@ def admin_view_report(appointment_id):
 @main.route('/doctor/provide/weekly_availability' , methods=['POST' , 'GET'])
 @login_required
 def set_availability():
-    
-    doctor_id = current_user.id
+    if current_user.role.lower() != 'doctor':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.home'))
+    doctor_id = current_user.doctor.id
 
     # Apne fixed time slots ko Python 'time' objects me define karein
     # Yeh HTML ke 'slot1' aur 'slot2' se match honge
@@ -645,6 +839,12 @@ def save_patient_history(appointment_id):
 
     appointment = Appointment.query.get_or_404(appointment_id)
 
+    # Authorization: only the assigned doctor or admin may edit
+    if not (current_user.role.lower() == 'admin' or
+            (current_user.role.lower() == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id)):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+
     history = appointment.history 
 
     if not history:
@@ -660,17 +860,61 @@ def save_patient_history(appointment_id):
     PrescribedMedicine.query.filter_by(history_id=history.id).delete()
 
     # new medicines list
-    meds = request.form.get("medicine_name")
-    doses = request.form.get("dosage")
+    meds = request.form.getlist("medicine_name")
+    doses = request.form.getlist("dosage")
 
-   
-    new_med = PrescribedMedicine(history_id=history.id,
-                                    medicine_name=meds,
-                                    dosage=doses)
-    db.session.add(new_med)
+    for med_name, dose in zip(meds, doses):
+        if med_name and med_name.strip():
+            new_med = PrescribedMedicine(history_id=history.id,
+                                         medicine_name=med_name.strip(),
+                                         dosage=(dose or '').strip())
+            db.session.add(new_med)
+
+    # Medical report / lab file uploads
+    if 'report_file' in request.files:
+        files = request.files.getlist('report_file')
+        for f in files:
+            if f and f.filename:
+                allowed = current_app.config['ALLOWED_UPLOAD_EXTENSIONS']
+                ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+                if ext not in allowed:
+                    flash(f"File '{f.filename}' has an invalid format.", "danger")
+                    continue
+                stored = save_upload(f, subfolder='uploads/reports', allowed_ext=allowed, max_bytes=10*1024*1024)
+                if stored:
+                    report = ReportFile(
+                        appointment_id=appointment.id,
+                        filename=stored,
+                        original_name=f.filename,
+                        file_type=ext,
+                        uploaded_by=current_user.id
+                    )
+                    db.session.add(report)
 
     db.session.commit()
     flash("History Updated Successfully ✔", "success")
+    return redirect(request.referrer or url_for('main.doctor_dashboard'))
+
+
+@main.route('/report_file/delete/<int:file_id>', methods=['POST'])
+@login_required
+def delete_report_file(file_id):
+    report = ReportFile.query.get_or_404(file_id)
+    appointment = report.appointment
+    is_admin = current_user.role.lower() == 'admin'
+    is_own_doctor = current_user.role.lower() == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    if not (is_admin or is_own_doctor):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+    try:
+        path = os.path.join(current_app.root_path, 'static', 'uploads', 'reports', report.filename)
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception:
+        pass
+    db.session.delete(report)
+    db.session.commit()
+    flash("File deleted.", "success")
     return redirect(request.referrer)
 
 
@@ -679,6 +923,137 @@ def save_patient_history(appointment_id):
 
 # VIEW REPORT ROUTE
 # ==========================
+@main.route('/report/pdf/<int:appointment_id>')
+@login_required
+def download_report_pdf(appointment_id):
+    """Generate and download a styled PDF prescription with hospital letterhead."""
+    from fpdf import FPDF
+    from io import BytesIO
+
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    # Authorization
+    role = current_user.role.lower()
+    is_admin = role == 'admin'
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_admin or is_own_doctor or is_own_patient):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+
+    history = appointment.history
+    doctor = appointment.doctor
+    patient = appointment.patient
+
+    class Pdf(FPDF):
+        def header(self):
+            self.set_fill_color(26, 92, 143)
+            self.rect(0, 0, 210, 28, 'F')
+            self.set_text_color(255, 255, 255)
+            self.set_font('Helvetica', 'B', 18)
+            self.cell(0, 12, 'HMS Portal Hospital', ln=True, align='C')
+            self.set_font('Helvetica', '', 9)
+            self.cell(0, 6, 'Your Health, Our Priority  |  Phone: +91-612-2370419  |  Email: info@hmsp.com', ln=True, align='C')
+            self.set_text_color(30, 30, 30)
+            self.ln(12)
+
+        def footer(self):
+            self.set_y(-18)
+            self.set_draw_color(200, 200, 200)
+            self.line(10, self.get_y(), 200, self.get_y())
+            self.set_font('Helvetica', 'I', 8)
+            self.set_text_color(130, 130, 130)
+            self.cell(0, 8, 'This is a computer generated prescription. Signature: ____________________', align='C')
+
+    pdf = Pdf()
+    pdf.add_page()
+    pdf.set_left_margin(12)
+    pdf.set_right_margin(12)
+
+    # Prescription header
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.set_text_color(26, 92, 143)
+    pdf.cell(0, 8, 'MEDICAL PRESCRIPTION', ln=True)
+    pdf.set_draw_color(0, 201, 167)
+    pdf.line(12, pdf.get_y(), 198, pdf.get_y())
+    pdf.ln(6)
+
+    # Doctor / patient info
+    pdf.set_text_color(30, 30, 30)
+    pdf.set_font('Helvetica', '', 11)
+    pdf.cell(0, 7, f"Doctor: Dr. {doctor.user.full_name}  ({doctor.specialization})", ln=True)
+    pdf.cell(0, 7, f"Qualification: {doctor.qualification}  |  Experience: {doctor.experience_years} years", ln=True)
+    pdf.cell(0, 7, f"Patient: {patient.user.full_name}   Age: {patient.user.age}   Gender: {patient.user.gender}", ln=True)
+    dt = appointment.appointment_datetime
+    pdf.cell(0, 7, f"Date: {dt.strftime('%B %d, %Y  %I:%M %p') if dt else 'N/A'}", ln=True)
+    pdf.ln(4)
+
+    pdf.set_draw_color(200, 200, 200)
+    pdf.line(12, pdf.get_y(), 198, pdf.get_y())
+    pdf.ln(3)
+
+    if history:
+        if history.diagnosis:
+            pdf.set_font('Helvetica', 'B', 11)
+            pdf.cell(0, 7, 'Diagnosis:', ln=True)
+            pdf.set_font('Helvetica', '', 11)
+            pdf.multi_cell(0, 6, str(history.diagnosis))
+            pdf.ln(2)
+
+        if history.tests_done:
+            pdf.set_font('Helvetica', 'B', 11)
+            pdf.cell(0, 7, 'Tests Done:', ln=True)
+            pdf.set_font('Helvetica', '', 11)
+            pdf.multi_cell(0, 6, str(history.tests_done))
+            pdf.ln(2)
+
+        pdf.set_font('Helvetica', 'B', 11)
+        pdf.cell(0, 7, 'Prescribed Medicines:', ln=True)
+        pdf.ln(1)
+        meds = history.medicines if history.medicines else []
+        if meds:
+            pdf.set_font('Helvetica', 'B', 10)
+            pdf.set_fill_color(240, 247, 250)
+            pdf.cell(90, 8, 'Medicine Name', border=1, fill=True)
+            pdf.cell(80, 8, 'Dosage', border=1, fill=True)
+            pdf.ln()
+            pdf.set_font('Helvetica', '', 10)
+            for m in meds:
+                pdf.cell(90, 8, str(m.medicine_name or ''), border=1)
+                pdf.cell(80, 8, str(m.dosage or ''), border=1)
+                pdf.ln()
+        else:
+            pdf.set_font('Helvetica', 'I', 10)
+            pdf.cell(0, 7, 'No medicines prescribed.')
+            pdf.ln()
+
+        pdf.ln(3)
+        if history.prescription_notes:
+            pdf.set_font('Helvetica', 'B', 11)
+            pdf.cell(0, 7, 'Notes:', ln=True)
+            pdf.set_font('Helvetica', '', 11)
+            pdf.multi_cell(0, 6, str(history.prescription_notes))
+    else:
+        pdf.set_font('Helvetica', 'I', 11)
+        pdf.cell(0, 8, 'No medical report available for this appointment.')
+
+    pdf.ln(6)
+    pdf.set_font('Helvetica', 'I', 9)
+    pdf.set_text_color(130, 130, 130)
+    pdf.cell(0, 6, 'Generated by HMS Portal - secure digital prescriptions')
+
+    buf = BytesIO()
+    pdf.output(buf)
+    buf.seek(0)
+    from flask import Response
+    filename = f"prescription_{appointment.id}.pdf"
+    return Response(
+        buf,
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
+
+
 @main.route('/doctor/view_report/<int:appointment_id>')
 @login_required
 def view_patient_report(appointment_id):
@@ -709,6 +1084,262 @@ def assigned_patients():
 
 #=========================================== Routes Manage by Patient ===============================
 
+# ===================== Chat Routes =====================
+
+@main.route('/chat/<int:appointment_id>', methods=['GET'])
+@login_required
+def chat_room(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    role = current_user.role.lower()
+    is_admin = role == 'admin'
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_admin or is_own_doctor or is_own_patient):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+    messages = ChatMessage.query.filter_by(appointment_id=appointment_id).order_by(ChatMessage.created_at.asc()).all()
+    return render_template('chat/room.html', appointment=appointment, messages=messages)
+
+
+@main.route('/chat/<int:appointment_id>/upload', methods=['POST'])
+@login_required
+def chat_upload(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    role = current_user.role.lower()
+    is_admin = role == 'admin'
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_admin or is_own_doctor or is_own_patient):
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    stored = save_upload(file, subfolder='uploads/chat', allowed_ext=current_app.config['ALLOWED_UPLOAD_EXTENSIONS'], max_bytes=10*1024*1024)
+    if not stored:
+        return jsonify({'error': 'Invalid file type or file too large (max 10 MB).'}), 400
+
+    return jsonify({'url': url_for('static', filename=f'uploads/chat/{stored}'), 'name': file.filename})
+
+
+@main.route('/uploads/<path:filename>')
+@login_required
+def serve_upload(filename):
+    return send_from_directory(os.path.join(current_app.root_path, 'static', 'uploads'), filename)
+
+
+@main.route('/chat/<int:appointment_id>/messages', methods=['GET'])
+@login_required
+def chat_messages(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    role = current_user.role.lower()
+    is_admin = role == 'admin'
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_admin or is_own_doctor or is_own_patient):
+        return jsonify({'error': 'Unauthorized'}), 403
+    messages = ChatMessage.query.filter_by(appointment_id=appointment_id).order_by(ChatMessage.created_at.asc()).all()
+    data = [{
+        'id': m.id,
+        'sender_id': m.sender_id,
+        'sender_name': m.sender.full_name,
+        'message': m.message,
+        'file_url': m.file_url,
+        'file_name': m.file_name,
+        'is_read': m.is_read,
+        'created_at': m.created_at.strftime('%Y-%m-%d %H:%M:%S') if m.created_at else ''
+    } for m in messages]
+    return jsonify(data)
+
+
+# ===================== Video Consultation Routes =====================
+
+@main.route('/video/<int:appointment_id>', methods=['GET'])
+@login_required
+def video_room(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    role = current_user.role.lower()
+    is_admin = role == 'admin'
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_admin or is_own_doctor or is_own_patient):
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+    # Get or create a video room
+    video = VideoRoom.query.filter_by(appointment_id=appointment_id).first()
+    if not video:
+        room_name = f"hms-{uuid.uuid4().hex[:12]}"
+        video = VideoRoom(appointment_id=appointment_id, room_name=room_name, status='pending')
+        db.session.add(video)
+        db.session.commit()
+    return render_template('chat/video.html', appointment=appointment, video=video)
+
+
+@main.route('/video/<int:appointment_id>/start', methods=['POST'])
+@login_required
+def start_video_call(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    role = current_user.role.lower()
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_own_doctor or is_own_patient):
+        return jsonify({'error': 'Unauthorized'}), 403
+    video = VideoRoom.query.filter_by(appointment_id=appointment_id).first()
+    if not video:
+        video = VideoRoom(appointment_id=appointment_id, room_name=f"hms-{uuid.uuid4().hex[:12]}", status='pending')
+        db.session.add(video)
+        db.session.flush()
+    video.status = 'active'
+    video.started_at = datetime.utcnow()
+    db.session.commit()
+    # Notify other party
+    notify_other_party(appointment, 'Video call started',
+                       f'{current_user.full_name} has started a video call.',
+                       url_for('main.video_room', appointment_id=appointment_id))
+    return jsonify({'status': 'active', 'room_name': video.room_name})
+
+
+@main.route('/video/<int:appointment_id>/end', methods=['POST'])
+@login_required
+def end_video_call(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    role = current_user.role.lower()
+    is_own_doctor = role == 'doctor' and hasattr(current_user, 'doctor') and appointment.doctor_id == current_user.doctor.id
+    is_own_patient = role == 'patient' and hasattr(current_user, 'patient') and appointment.patient_id == current_user.patient.id
+    if not (is_own_doctor or is_own_patient):
+        return jsonify({'error': 'Unauthorized'}), 403
+    video = VideoRoom.query.filter_by(appointment_id=appointment_id).first()
+    if video:
+        video.status = 'ended'
+        video.ended_at = datetime.utcnow()
+        db.session.commit()
+    return jsonify({'status': 'ended'})
+
+
+# ===================== Ratings & Reviews =====================
+
+@main.route('/appointment/<int:appointment_id>/rate', methods=['POST'])
+@login_required
+def rate_doctor(appointment_id):
+    """Allow a patient to rate a doctor after a completed appointment."""
+    if current_user.role.lower() != 'patient':
+        flash("Only patients can rate doctors.", "danger")
+        return redirect(url_for('main.home'))
+
+    appointment = Appointment.query.get_or_404(appointment_id)
+    if appointment.patient_id != current_user.patient.id:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('main.home'))
+    if appointment.status.lower() != 'completed':
+        flash("You can only rate a doctor after the appointment is completed.", "warning")
+        return redirect(url_for('main.booked_appointment_list'))
+
+    try:
+        rating_val = int(request.form.get('rating', 0))
+    except (TypeError, ValueError):
+        rating_val = 0
+    review = (request.form.get('review') or '').strip()
+
+    if rating_val < 1 or rating_val > 5:
+        flash("Please select a rating between 1 and 5 stars.", "warning")
+        return redirect(url_for('main.view_report', appointment_id=appointment.id))
+
+    existing = DoctorRating.query.filter_by(appointment_id=appointment.id).first()
+    if existing:
+        existing.rating = rating_val
+        existing.review = review
+        db.session.commit()
+        flash("Your rating has been updated. Thank you!", "success")
+    else:
+        rating = DoctorRating(
+            doctor_id=appointment.doctor_id,
+            patient_id=appointment.patient_id,
+            appointment_id=appointment.id,
+            rating=rating_val,
+            review=review
+        )
+        db.session.add(rating)
+        db.session.commit()
+        flash("Thank you for rating the doctor!", "success")
+
+    return redirect(url_for('main.view_report', appointment_id=appointment.id))
+
+
+@main.route('/doctor/<int:doctor_id>/reviews')
+@login_required
+def doctor_reviews(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+    reviews = DoctorRating.query.filter_by(doctor_id=doctor.id).order_by(DoctorRating.created_at.desc()).all()
+    return render_template('patient/doctor_reviews.html', doctor=doctor, reviews=reviews)
+
+
+# ===================== Medical History Timeline =====================
+
+@main.route('/patient/medical_history')
+@login_required
+def medical_history():
+    if current_user.role.lower() != 'patient':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.home'))
+    appointments = Appointment.query.filter_by(patient_id=current_user.patient.id) \
+        .filter(db.func.lower(Appointment.status) == 'completed') \
+        .order_by(Appointment.appointment_datetime.desc()).all()
+    return render_template('patient/medical_history.html', appointments=appointments)
+
+
+
+
+@main.route('/notifications', methods=['GET'])
+@login_required
+def notification_list():
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    notifs = Notification.query.filter_by(recipient_id=current_user.id)\
+        .order_by(Notification.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+
+    if request.args.get('format') == 'json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = [{
+            'id': n.id,
+            'title': n.title,
+            'message': n.message,
+            'link': n.link or '#',
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M') if n.created_at else ''
+        } for n in notifs.items]
+        return jsonify({'notifications': data})
+
+    return render_template('notifications/list.html', notifications=notifs)
+
+
+@main.route('/notifications/unread_count', methods=['GET'])
+@login_required
+def notification_unread_count():
+    count = Notification.query.filter_by(recipient_id=current_user.id, is_read=False).count()
+    return jsonify({'unread_count': count})
+
+
+@main.route('/notifications/mark_read/<int:notif_id>', methods=['POST'])
+@login_required
+def mark_notification_read(notif_id):
+    notif = Notification.query.get_or_404(notif_id)
+    if notif.recipient_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    notif.is_read = True
+    db.session.commit()
+    return jsonify({'status': 'ok'})
+
+
+@main.route('/notifications/mark_all_read', methods=['POST'])
+@login_required
+def mark_all_notifications_read():
+    Notification.query.filter_by(recipient_id=current_user.id, is_read=False).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'status': 'ok'})
+
 
 
 @main.route('/check_availability/<int:doctor_id>' , methods=['GET'])
@@ -717,6 +1348,7 @@ def check_availability(doctor_id):
     doctor = Doctor.query.get_or_404(doctor_id)
     appointments = Appointment.query.filter_by(doctor_id=doctor.id).all()
     available_slots = DoctorAvailability.query.filter_by(doctor_id=doctor.id).all()
+    booked_slots = appointments
     return render_template('patient/check_availability.html', available_slots=available_slots, booked_slots=booked_slots)
 
 
@@ -735,9 +1367,42 @@ def doctor_list():
     if current_user.role.lower() != 'patient':
         flash("access denied , DANGER !")
         return redirect(url_for('main.home'))
-    doctors = Doctor.query.all()
+    page = request.args.get('page', 1, type=int)
+    per_page = 6
+    q = request.args.get('q', '').strip()
+    department = request.args.get('department', '').strip()
+    specialization = request.args.get('specialization', '').strip()
+
+    query = Doctor.query.join(User, Doctor.user_id == User.id)
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(User.full_name.ilike(like), Doctor.specialization.ilike(like)))
+    if department:
+        query = query.filter(Doctor.department_id == int(department))
+    if specialization:
+        query = query.filter(Doctor.specialization.ilike(f'%{specialization}%'))
+
+    doctors = query.order_by(User.full_name.asc()).paginate(page=page, per_page=per_page, error_out=False)
     departments = Department.query.all()
-    return render_template('patient/all_doctors.html', doctors=doctors , departments = departments)
+    specializations = db.session.query(Doctor.specialization).distinct().all()
+    specializations = [s[0] for s in specializations]
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = [{
+            'id': d.id,
+            'name': f"Dr. {d.user.full_name}",
+            'specialization': d.specialization,
+            'experience': d.experience_years,
+            'avatar': url_for('static', filename='img/' + (d.user.profile_picture or 'default.png')),
+            'profile_url': url_for('main.get_doctor_profile', doctor_id=d.id),
+        } for d in doctors.items]
+        pagination_html = render_template('partials/pagination.html', pages=doctors.pages, page=page, q=q,
+                                          department=department, specialization=specialization)
+        return jsonify({'doctors': data, 'pagination_html': pagination_html})
+
+    return render_template('patient/all_doctors.html', doctors=doctors, departments=departments,
+                           specializations=specializations, q=q, department=department,
+                           specialization=specialization, page=page, pages=doctors.pages, total=doctors.total)
 
 
 
@@ -756,7 +1421,7 @@ def doctor_availability(doctor_id):
     doctor = Doctor.query.get_or_404(doctor_id)
     
     # Fetch availability from DB
-    availabilities = DoctorAvailability.query.filter_by(doctor_id=doctor.user.id).all()
+    availabilities = DoctorAvailability.query.filter_by(doctor_id=doctor.id).all()
     
     # Organize data by day so we can loop through Monday-Sunday easily
     week_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -785,7 +1450,23 @@ def doctor_availability(doctor_id):
                 if slot.start_time_after_lunch and slot.end_time_after_lunch:
                     schedule_data[day_name]['evening'] = f"{(slot.start_time_after_lunch)} - {(slot.end_time_after_lunch)}"
 
-    return render_template('auth/doct_availability.html', doctor=doctor, schedule=schedule_data, week_days=week_days)
+    # Build JSON for calendar picker
+    slots_json = {}
+    for day in week_days:
+        slots = []
+        sd = schedule_data[day]
+        if sd['is_available']:
+            if sd['morning']:
+                slots.append(sd['morning'].split(' - ')[0].strip())
+            if sd['evening']:
+                slots.append(sd['evening'].split(' - ')[0].strip())
+        slots_json[day] = slots
+
+    booked_appointments = Appointment.query.filter_by(doctor_id=doctor.id).filter(Appointment.status != 'Cancelled').all()
+    booked_json = [a.appointment_datetime.strftime('%Y-%m-%d %H:%M:%S') for a in booked_appointments if a.appointment_datetime]
+
+    return render_template('auth/doct_availability.html', doctor=doctor, schedule=schedule_data, week_days=week_days,
+                           slots_json=slots_json, booked_json=booked_json)
 
 
 @main.route('/book_appointment_slot', methods=['POST'])
@@ -797,12 +1478,19 @@ def book_appointment_slot():
     
     try:
         doctor_id = request.form.get("doctor_id")
-        patient_id = request.form.get("current_user.patient.id")
         slot_time = request.form.get("slot_time")      # example -> "08:00"
         appointment_date = request.form.get("appointment_date")  # yyyy-mm-dd format
 
         # Convert Date + Time to a combined datetime
-        final_datetime = datetime.strptime(f"{appointment_date} {slot_time}", "%Y-%m-%d %H:%M:%S")
+        try:
+            final_datetime = datetime.strptime(f"{appointment_date} {slot_time}", "%Y-%m-%d %H:%M:%S")
+        except (ValueError, TypeError):
+            flash("Invalid date or time selected.", "danger")
+            return redirect(url_for('main.doctor_availability', doctor_id=doctor_id))
+
+        if final_datetime <= datetime.now():
+            flash("Please choose a future date and time.", "warning")
+            return redirect(url_for('main.doctor_availability', doctor_id=doctor_id))
 
         # check already booked? (Prevent duplicate)
         existing = Appointment.query.filter_by(
@@ -813,7 +1501,7 @@ def book_appointment_slot():
 
         if existing:
             flash("You already booked this slot!", "warning")
-            return redirect(url_for('doctor_availability', doctor_id=doctor_id))
+            return redirect(url_for('main.doctor_availability', doctor_id=doctor_id))
 
         # Save in DB
         new_appt = Appointment(
@@ -823,15 +1511,34 @@ def book_appointment_slot():
             status = "booked"
         )
         db.session.add(new_appt)
+        db.session.flush()
+
+        # Notify the doctor
+        doctor = Doctor.query.get(int(doctor_id))
+        if doctor:
+            create_notification(doctor.user_id, "New appointment booked",
+                                f"{current_user.full_name} booked an appointment on {final_datetime.strftime('%Y-%m-%d %H:%M')}.",
+                                url_for('main.view_appointment', appointment_id=new_appt.id))
+
+        # Email notification
+        try:
+            send_appointment_email(new_appt, 'booked')
+        except Exception as e:
+            print('Email error:', e)
+
         db.session.commit()
 
         flash("Appointment booked successfully!", "success")
         return redirect(url_for('main.booked_appointment_list'))
 
     except Exception as e:
+        db.session.rollback()
         print(e)
         flash("Something went wrong. Please try again.", "danger")
-        return redirect(url_for('doctor_availability', doctor_id=doctor_id))
+        doctor_id = request.form.get('doctor_id')
+        if doctor_id:
+            return redirect(url_for('main.doctor_availability', doctor_id=doctor_id))
+        return redirect(url_for('main.patient_dashboard'))
 
 
 
@@ -892,6 +1599,7 @@ def view_report(appointment_id):
 
     
     
+
 
 
 

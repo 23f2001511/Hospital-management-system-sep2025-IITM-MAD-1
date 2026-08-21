@@ -1,0 +1,28 @@
+{% set role = current_user.role.lower() if current_user.is_authenticated else '' %}
+<nav id="sidebar">
+    <div class="sidebar-header d-flex align-items-center">
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+            <img src="{{ url_for('static', filename='img/mad1.png') }}" alt="HMS Logo" style="height: 35px;" class="me-2 rounded-circle">
+            <i class="bi bi-heart-pulse-fill me-2"></i>HMS Portal
+        </a>
+    </div>
+    <ul class="list-unstyled components">
+        {% if role == 'admin' %}
+            <li><a href="{{ url_for('main.admin_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+            <li><a href="{{ url_for('main.all_doctors') }}"><i class="bi bi-person-badge-fill me-2"></i>Doctors</a></li>
+            <li><a href="{{ url_for('main.all_patients') }}"><i class="bi bi-people-fill me-2"></i>Patients</a></li>
+            <li><a href="{{ url_for('main.all_appointments') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+        {% elif role == 'doctor' %}
+            <li><a href="{{ url_for('main.doctor_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+            <li><a href="{{ url_for('main.set_availability') }}"><i class="bi bi-clock-fill me-2"></i>Availability</a></li>
+            <li><a href="{{ url_for('main.manage_appointment') }}"><i class="bi bi-calendar-check-fill me-2"></i>Appointments</a></li>
+            <li><a href="{{ url_for('main.assigned_patients') }}"><i class="bi bi-people-fill me-2"></i>Assigned Patients</a></li>
+        {% elif role == 'patient' %}
+            <li><a href="{{ url_for('main.patient_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a></li>
+            <li><a href="{{ url_for('main.doctor_list') }}"><i class="bi bi-person-badge-fill me-2"></i>Find a Doctor</a></li>
+            <li><a href="{{ url_for('main.booked_appointment_list') }}"><i class="bi bi-calendar-check-fill me-2"></i>My Appointments</a></li>
+            <li><a href="{{ url_for('main.medical_history') }}"><i class="bi bi-journal-medical me-2"></i>Medical History</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('main.update_profile') }}"><i class="bi bi-person-fill-gear me-2"></i>Profile Settings</a></li>
+    </ul>
+</nav>

@@ -64,6 +64,7 @@
           </div>
 
           <form  action="{{url_for('main.edit_doctor' , doctor_id=doctor.id)}}" method='post'>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div id="edit-doctor-form" class="row g-4">
             <!-- Full Name -->
             <div class="col-md-6">

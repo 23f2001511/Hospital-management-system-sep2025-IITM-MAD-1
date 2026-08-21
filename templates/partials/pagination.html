@@ -1,0 +1,23 @@
+{% if pages and pages > 1 %}
+<nav aria-label="Pagination">
+    <ul class="pagination justify-content-center mb-0">
+        <li class="page-item {{ 'disabled' if page <= 1 }}">
+            <a class="page-link" href="{{ url_for(request.endpoint, page=page-1, q=q, department=department if department is defined else '', status=status, date_from=date_from if date_from is defined else '', date_to=date_to if date_to is defined else '') }}">Previous</a>
+        </li>
+        {% for p in range(1, pages + 1) %}
+            {% if p == page %}
+            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+            {% elif p <= 3 or p > pages - 3 or (p >= page - 1 and p <= page + 1) %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for(request.endpoint, page=p, q=q, department=department if department is defined else '', status=status, date_from=date_from if date_from is defined else '', date_to=date_to if date_to is defined else '') }}">{{ p }}</a>
+            </li>
+            {% elif p == 4 or p == pages - 3 %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {{ 'disabled' if page >= pages }}">
+            <a class="page-link" href="{{ url_for(request.endpoint, page=page+1, q=q, department=department if department is defined else '', status=status, date_from=date_from if date_from is defined else '', date_to=date_to if date_to is defined else '') }}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
