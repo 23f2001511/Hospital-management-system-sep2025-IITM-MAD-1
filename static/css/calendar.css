@@ -38,9 +38,9 @@
 .cal-day.other-month { color: var(--text-subtle); opacity: 0.4; }
 .cal-day.selected { background: var(--primary); color: #fff; }
 .cal-day.unavailable { opacity: 0.3; cursor: not-allowed; }
-.cal-day.available:hover { background: var(--primary-050); color: var(--primary-600); }
+.cal-day.available:hover { background: var(--primary-050); color: var(--primary-text); }
 .cal-day.full {
-  background: var(--danger-050); color: var(--danger-600);
+  background: var(--danger-050); color: var(--danger-text);
   text-decoration: line-through; cursor: not-allowed;
   font-weight: 500;
 }
@@ -58,6 +58,7 @@
   background: var(--surface); color: var(--text); font-size: var(--text-sm);
   cursor: pointer; transition: all var(--dur-fast) var(--ease-out); font-weight: 500;
 }
-.slot-btn:hover { border-color: var(--primary); color: var(--primary-600); background: var(--primary-050); }
+.slot-btn:hover { border-color: var(--primary); color: var(--primary-text); background: var(--primary-050); }
 .slot-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
 @keyframes slotFadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+

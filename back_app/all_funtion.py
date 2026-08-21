@@ -14,10 +14,10 @@ def create_admin_user():
     # Check if admin already exists
     admin = User.query.filter_by(role='admin').first()
     if not admin:
-        hashed_password = generate_password_hash('Admin@2024')
+        hashed_password = generate_password_hash('Ehtesham@admin-2024')
         admin = User(
             full_name='Ehtesham Aalam (Admin)',
-            email='Ehtesham@hms.com',
+            email='23f2001511@ds.study.iitm.ac.in',
             password=hashed_password,
             phone_number='0000000000',
             age=22,

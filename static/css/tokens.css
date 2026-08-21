@@ -28,6 +28,14 @@
   --info: #3b82f6;
   --info-050: #eff6ff;
 
+  /* Text-on-tint shades (used for badge/alert/link text). Kept light in dark mode. */
+  --primary-text: #1d4ed8;
+  --success-text: #059669;
+  --warning-text: #d97706;
+  --danger-text: #dc2626;
+  --info-text: #2563eb;
+  --accent-text: #0891b2;
+
   /* ---------- Neutral / gray scale ---------- */
   --gray-50: #f8fafc;
   --gray-100: #f1f5f9;
@@ -48,7 +56,7 @@
   --surface-hover: #f1f5f9;
   --text: #0f172a;
   --text-muted: #64748b;
-  --text-subtle: #94a3b8;
+  --text-subtle: #64748b;
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
   --sidebar-bg: #ffffff;
@@ -115,6 +123,31 @@
   --sidebar-collapsed: 76px;
   --topbar-height: 64px;
   --content-max: 1440px;
+
+  /* ---------- Bootstrap variable remap (light) ----------
+     Bootstrap 5.x sets card/dropdown/modal/table text from --bs-body-color.
+     Point them at our tokens so they flip with the theme. */
+  --bs-body-color: var(--text);
+  --bs-body-color-rgb: 15, 23, 42;
+  --bs-secondary-color: var(--text-muted);
+  --bs-secondary-color-rgb: 100, 116, 139;
+  --bs-emphasis-color: var(--text);
+  --bs-heading-color: var(--text);
+  --bs-card-color: var(--text);
+  --bs-card-cap-color: var(--text-muted);
+  --bs-card-bg: var(--surface);
+  --bs-dropdown-color: var(--text);
+  --bs-dropdown-bg: var(--surface);
+  --bs-modal-color: var(--text);
+  --bs-modal-bg: var(--surface);
+  --bs-body-bg: var(--bg);
+  --bs-link-color: var(--primary);
+  --bs-link-color-rgb: 37, 99, 235;
+  --bs-link-hover-color: var(--primary-text);
+  --bs-tertiary-bg: var(--surface-2);
+  --bs-secondary-bg: var(--surface-2);
+  --bs-border-color: var(--border);
+  --bs-border-color-translucent: var(--border);
 }
 
 /* ===================== DARK MODE ===================== */
@@ -126,7 +159,7 @@
   --surface-hover: #1a2945;
   --text: #e2e8f0;
   --text-muted: #94a3b8;
-  --text-subtle: #64748b;
+  --text-subtle: #94a3b8;
   --border: rgba(148,163,184,0.15);
   --border-strong: rgba(148,163,184,0.3);
   --sidebar-bg: #0f172a;
@@ -142,10 +175,41 @@
   --danger-050: rgba(239,68,68,0.12);
   --info-050: rgba(59,130,246,0.12);
 
+  /* Light text shades for dark mode (badge/alert/link text stays readable) */
+  --primary-text: #93c5fd;
+  --success-text: #6ee7b7;
+  --warning-text: #fcd34d;
+  --danger-text: #fca5a5;
+  --info-text: #93c5fd;
+  --accent-text: #67e8f9;
+
   --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.4);
   --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.4), 0 1px 2px -1px rgba(0,0,0,0.4);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -2px rgba(0,0,0,0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -4px rgba(0,0,0,0.3);
   --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.55), 0 8px 10px -6px rgba(0,0,0,0.35);
   --shadow-focus: 0 0 0 3px rgba(59,130,246,0.35);
+
+  /* Bootstrap variable remap (dark) */
+  --bs-body-color: var(--text);
+  --bs-body-color-rgb: 226, 232, 240;
+  --bs-secondary-color: var(--text-muted);
+  --bs-secondary-color-rgb: 148, 163, 184;
+  --bs-emphasis-color: var(--text);
+  --bs-heading-color: var(--text);
+  --bs-card-color: var(--text);
+  --bs-card-cap-color: var(--text-muted);
+  --bs-card-bg: var(--surface);
+  --bs-dropdown-color: var(--text);
+  --bs-dropdown-bg: var(--surface);
+  --bs-modal-color: var(--text);
+  --bs-modal-bg: var(--surface);
+  --bs-body-bg: var(--bg);
+  --bs-link-color: var(--primary);
+  --bs-link-color-rgb: 96, 165, 250;
+  --bs-link-hover-color: var(--primary-text);
+  --bs-tertiary-bg: var(--surface-2);
+  --bs-secondary-bg: var(--surface-2);
+  --bs-border-color: var(--border);
+  --bs-border-color-translucent: var(--border);
 }

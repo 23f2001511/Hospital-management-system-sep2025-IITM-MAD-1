@@ -29,7 +29,7 @@
   box-shadow: var(--shadow-md);
 }
 .brand-name { font-family: var(--font-heading); font-weight: 800; font-size: 1.25rem; color: var(--text); }
-.brand-accent { color: var(--accent-600); }
+.brand-accent { color: var(--accent-text); }
 .glass-nav .nav-link {
   color: var(--text-muted) !important; font-weight: 500; font-size: var(--text-sm);
   position: relative; transition: color 0.2s;
@@ -132,7 +132,7 @@
 /* ===== SECTIONS ===== */
 .section { padding: 80px 0; }
 .section-tag {
-  display: inline-block; background: var(--primary-050); color: var(--primary-600);
+  display: inline-block; background: var(--primary-050); color: var(--primary-text);
   font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
   padding: 5px 14px; border-radius: var(--radius-full); margin-bottom: 12px;
 }
@@ -148,7 +148,7 @@
 .service-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--primary-100); }
 .service-icon {
   width: 56px; height: 56px; border-radius: var(--radius-md);
-  background: var(--primary-050); color: var(--primary-600);
+  background: var(--primary-050); color: var(--primary-text);
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; margin-bottom: 18px; transition: all 0.3s;
 }
@@ -181,7 +181,7 @@
 .testimonial-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
 .testimonial-card p { font-size: 0.92rem; color: var(--text-muted); line-height: 1.7; font-style: italic; margin-bottom: 18px; }
 .author-row { display: flex; align-items: center; gap: 12px; }
-.author-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-050); color: var(--primary-600); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; }
+.author-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-050); color: var(--primary-text); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; }
 .author-name { font-weight: 600; font-size: 0.9rem; }
 .author-tag { font-size: 0.78rem; color: var(--text-muted); }
 
@@ -193,7 +193,7 @@
 .doctor-card-glass .doc-img-wrap { overflow: hidden; }
 .doctor-card-glass .doc-info { padding: 20px; }
 .doctor-card-glass h5 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-.doctor-dept { font-size: 0.82rem; color: var(--primary-600); font-weight: 600; margin-bottom: 10px; }
+.doctor-dept { font-size: 0.82rem; color: var(--primary-text); font-weight: 600; margin-bottom: 10px; }
 .rating-count { color: var(--text-muted); font-size: 0.8rem; }
 .doctor-meta { display: flex; gap: 12px; font-size: 0.8rem; color: var(--text-muted); }
 
@@ -237,3 +237,4 @@ footer p { color: rgba(255,255,255,0.6); }
   .hero-visual { margin-top: 40px; }
   .glass-nav .navbar-collapse { background: var(--surface); border-radius: var(--radius-lg); padding: 16px; margin-top: 8px; box-shadow: var(--shadow-lg); }
 }
+

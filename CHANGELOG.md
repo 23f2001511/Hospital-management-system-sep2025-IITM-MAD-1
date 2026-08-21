@@ -6,6 +6,62 @@ before was removed; everything below was added or fixed.
 
 ---
 
+## Dark Mode Contrast Fix
+
+### Root cause
+Bootstrap 5.x sets card/dropdown/modal/table text from `--bs-body-color`
+(`#212529`), which never changed in dark mode. Our pages override `body`
+color but the higher-specificity `.card { color: var(--bs-card-color) }` rule
+kept body text dark-gray-on-navy in dark mode (e.g., the "Professional
+Details" values on profile pages).
+
+### Fixes
+- **Bootstrap variable remap** in `tokens.css`: `--bs-body-color`,
+  `--bs-card-color`, `--bs-dropdown-color`, `--bs-modal-color`,
+  `--bs-secondary-color`, `--bs-heading-color`, `--bs-link-color`, etc. now
+  resolve to our theme tokens in both `:root` and `[data-theme="dark"]`, so
+  every Bootstrap component text flips correctly with the theme.
+- **Explicit colors** added to `.card`, `.card-body`, `.card-header`,
+  `.card-footer`, `.modal-content`, `.modal-body`, `.dropdown-menu`, and
+  `.table tbody td` as a safety net.
+- **New text-on-tint tokens** (`--primary-text`, `--success-text`,
+  `--warning-text`, `--danger-text`, `--info-text`, `--accent-text`) used by
+  badges, alerts, and `.text-*` utilities. These stay light in dark mode so
+  colored badge/alert text remains readable (7.7:1–9.7:1 verified).
+- **`--text-subtle`** darkened in light mode / lightened in dark mode so
+  timestamps, separators and helper text meet AA (4.76:1 light, 6.62:1 dark).
+- **Deleted 16 orphaned legacy CSS files** (`static/css/style.css`,
+  `static/css/auth/*.css`, `static/css/admin/*.css`) that were never loaded by
+  any template but contained dozens of hardcoded dark text colors
+  (`#333`, `#495057`, `#5a6a85`, `#2c3e50`, …). No template referenced them.
+
+### Files changed
+- `static/css/tokens.css` (Bootstrap remap + text tokens + subtle-token fix)
+- `static/css/components.css` (card/modal/dropdown/table color, badge/alert text tokens)
+- `static/css/base.css` (link hover → `--primary-text`)
+- `static/css/utilities.css` (`.text-*` → text tokens)
+- `static/css/calendar.css`, `static/css/layout.css`, `static/css/home.css`
+  (600-shade text usages → text tokens)
+- `templates/admin/dashboard.html`, `templates/admin/confirm_delete_doctor.html`,
+  `templates/admin/add_doctor.html`, `templates/auth/doct_availability.html`
+  (inline 600-shade/info text colors → text tokens)
+
+### Verified contrast (WCAG AA, 4.5:1 normal / 3:1 large)
+| Pair | Light | Dark |
+|---|---|---|
+| Card/table/input/heading text | 17.85:1 | 13.76:1 |
+| Muted/secondary text | 4.76:1 | 6.62:1 |
+| Subtle/helper text | 4.76:1 | 6.62:1 |
+| Primary badge text | — | 7.75:1 |
+| Success / warning / danger badge text | — | 9.43 / 9.69 / 8.18 :1 |
+| Sidebar nav text | — | 6.96:1 |
+| Placeholder text | — | 6.62:1 |
+
+All 28 authenticated routes re-tested (admin/doctor/patient) — every page
+renders 200 and all text now comes from theme variables.
+
+---
+
 ## Doctor Deletion, Capacity Limits & Booking Slips
 
 ### Feature 1 — Safe Doctor Deletion (soft-delete + auto-reassignment)

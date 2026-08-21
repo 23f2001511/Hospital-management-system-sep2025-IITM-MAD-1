@@ -63,7 +63,7 @@
 .sidebar .nav-link:hover { background: var(--surface-hover); color: var(--text); transform: translateX(3px); }
 .sidebar .nav-item.active .nav-link {
   background: var(--sidebar-active);
-  color: var(--primary-600);
+  color: var(--primary-text);
   font-weight: var(--weight-semibold);
 }
 .sidebar .nav-item.active .nav-link::before {
@@ -196,7 +196,7 @@
 .notif-panel .notif-item.unread { background: var(--primary-050); }
 .notif-panel .notif-item .notif-icon {
   width: 34px; height: 34px; border-radius: var(--radius-sm);
-  background: var(--primary-050); color: var(--primary-600);
+  background: var(--primary-050); color: var(--primary-text);
   display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;
 }
 .notif-panel .notif-item.unread .notif-icon { background: var(--primary); color: #fff; }
@@ -275,3 +275,4 @@
   .notif-panel { width: calc(100vw - 32px); right: -10px; }
   .page-header .page-title { font-size: var(--text-xl); }
 }
+

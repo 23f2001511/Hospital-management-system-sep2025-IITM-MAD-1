@@ -19,7 +19,7 @@
     <div class="col-lg-7 reveal">
         <div class="card border" style="border-color:var(--warning) !important;">
             <div class="card-header" style="background:var(--warning-050);">
-                <h5 style="color:var(--warning-600);"><i class="bi bi-exclamation-triangle me-2"></i>Impact Summary</h5>
+                <h5 style="color:var(--warning-text);"><i class="bi bi-exclamation-triangle me-2"></i>Impact Summary</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center gap-3 mb-4">
@@ -41,20 +41,20 @@
                     </div>
                     <div class="col-4">
                         <div class="p-3 rounded" style="background:var(--success-050);">
-                            <div class="fs-3 fw-bold" style="color:var(--success-600);">{{ reassignable | length }}</div>
+                            <div class="fs-3 fw-bold" style="color:var(--success-text);">{{ reassignable | length }}</div>
                             <small class="text-muted">Will be auto-reassigned</small>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="p-3 rounded" style="background:var(--danger-050);">
-                            <div class="fs-3 fw-bold" style="color:var(--danger-600);">{{ needs_attention | length }}</div>
+                            <div class="fs-3 fw-bold" style="color:var(--danger-text);">{{ needs_attention | length }}</div>
                             <small class="text-muted">Need manual attention</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="p-3 rounded mt-4" style="background:var(--info-050);">
-                    <small style="color:var(--info);">
+                    <small style="color:var(--info-text);">
                         <i class="bi bi-shield-check me-1"></i>
                         <b>Patient data is never deleted.</b> Past &amp; completed appointments, medical history,
                         prescriptions, chat history and video records are all preserved and remain linked to this doctor.
